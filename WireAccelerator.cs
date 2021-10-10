@@ -46,10 +46,10 @@ namespace WireShark {
             Tile tile = Main.tile[X, Y];
             if (tile == null) return 0;
             int mask = 0;
-            if (tile.wire()) mask |= 1;
-            if (tile.wire2()) mask |= 2;
-            if (tile.wire3()) mask |= 4;
-            if (tile.wire4()) mask |= 8;
+            if (tile.BlueWire) mask |= 1;
+            if (tile.GreenWire) mask |= 2;
+            if (tile.RedWire) mask |= 4;
+            if (tile.YellowWire) mask |= 8;
             return mask;
         }
 
@@ -133,12 +133,12 @@ namespace WireShark {
         private static bool IsAppliance(int i, int j) {
             Tile tile = Main.tile[i, j];
             int type = (int)tile.type;
-            if (tile.actuator()) return true;
-            if (tile.active()) {
+            if (tile.HasActuator) return true;
+            if (tile.IsActive) {
                 if (type == 144) return true;
-                else if (type == 421 && !tile.actuator()) return true;
-                else if (type == 422 && !tile.actuator()) return true;
-                if (type >= 255 && type <= 268 && !tile.actuator()) return true;
+                else if (type == 421 && !tile.HasActuator) return true;
+                else if (type == 422 && !tile.HasActuator) return true;
+                if (type >= 255 && type <= 268 && !tile.HasActuator) return true;
                 else {
                     if (type == 419) return true;
                     if (type == 406) return true;
@@ -272,7 +272,7 @@ namespace WireShark {
 
                 if (curTile == null) continue;
 
-                if (curTile.active() && curTile.type != 0) {
+                if (curTile.IsActive && curTile.type != 0) {
                     if (_sourceTable.Contains(curTile.type)) {
                         _inputConnectedCompoents[node.X, node.Y, wireid] = id;
                     } else if (IsAppliance(node.X, node.Y)) {

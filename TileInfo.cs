@@ -60,7 +60,7 @@ namespace WireShark
 
         public void HitWire()
         {
-            if (tile.actuator())
+            if (tile.HasActuator)
                 WiringWarpper.ActuateForced(i, j);
             //if (!TileLoader.PreHitWire(i, j, type)) return;
             HitWireInternal();
@@ -83,7 +83,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                if (!tile.actuator())
+                if (!tile.HasActuator)
                 {
                     tile.type = 422;
                     WorldGen.SquareTileFrame(i, j, true);
@@ -99,7 +99,7 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            if (!tile.actuator())
+            if (!tile.HasActuator)
             {
                 tile.type = 421;
                 WorldGen.SquareTileFrame(i, j, true);
@@ -178,7 +178,7 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            if (!tile.actuator())
+            if (!tile.HasActuator)
             {
                 if (type >= 262)
                 {
@@ -505,7 +505,7 @@ namespace WireShark
 
                     if (WiringWarpper.CheckMech(num36, num37, 30) && flag2)
                     {
-                        WorldGen.ShootFromCannon(num36, num37, num38, num39 + 1, 0, 0f, CurrentUser);
+                        WorldGen.ShootFromCannon(num36, num37, num38, num39 + 1, 0, 0f, CurrentUser, true);
                         return;
                     }
                 }
@@ -595,8 +595,7 @@ namespace WireShark
                     num57 = num149 / num57;
                     num55 *= num57;
                     num56 *= num57;
-                    Projectile.NewProjectile(vector.X, vector.Y, num55, num56, type2, damage, knockBack,
-                        CurrentUser, 0f, 0f);
+                    Projectile.NewProjectile(null, vector.X, vector.Y, num55, num56, type2, damage, knockBack, CurrentUser, 0f, 0f);
                     return;
                 }
 
@@ -638,7 +637,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                if (Main.tile[i, j - 1] != null && Main.tile[i, j - 1].active())
+                if (Main.tile[i, j - 1] != null && Main.tile[i, j - 1].IsActive)
                 {
                     if (TileID.Sets.BasicChest[Main.tile[i, j - 1].type] ||
                         TileID.Sets.BasicChestFake[Main.tile[i, j - 1].type])
@@ -703,7 +702,7 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            WorldGen.LaunchRocket(i, j);
+            WorldGen.LaunchRocket(i, j, true);
 
             return;
         }
@@ -720,7 +719,7 @@ namespace WireShark
 
                 if (CheckMech(num68, num67, 30))
                 {
-                    WorldGen.LaunchRocketSmall(num68, num67);
+                    WorldGen.LaunchRocketSmall(num68, num67, true);
                     return;
                 }
 
@@ -753,7 +752,7 @@ namespace WireShark
 
                     if (!flag5)
                     {
-                        Projectile.NewProjectile(num70 * 16 + 8, num69 * 16 + 2, 0f, 0f,
+                        Projectile.NewProjectile(null, num70 * 16 + 8, num69 * 16 + 2, 0f, 0f,
                             419 + Main.rand.Next(4), 0, 0f, Main.myPlayer, num70, num69);
                         return;
                     }
@@ -779,7 +778,7 @@ namespace WireShark
                 {
                     _teleport[0].X = num72;
                     _teleport[0].Y = j;
-                    if (tile.halfBrick())
+                    if (tile.IsHalfBlock)
                     {
                         Vector2[] expr_EFC_cp_0 = _teleport;
                         int expr_EFC_cp_ = 0;
@@ -791,7 +790,7 @@ namespace WireShark
                 {
                     _teleport[1].X = num72;
                     _teleport[1].Y = j;
-                    if (tile.halfBrick())
+                    if (tile.IsHalfBlock)
                     {
                         Vector2[] expr_F75_cp_0 = _teleport;
                         int expr_F75_cp_ = 1;
@@ -1429,7 +1428,7 @@ namespace WireShark
                                 damage2 = 40;
                                 zero = new Vector2(i * 16 + 8, j * 16 + 16);
                                 zero.Y += 6f;
-                                Projectile.NewProjectile((int) zero.X, (int) zero.Y, speedX, speedY, num100,
+                                Projectile.NewProjectile(null, (int) zero.X, (int) zero.Y, speedX, speedY, num100,
                                     damage2, 2f, Main.myPlayer, 0f, 0f);
                             }
                         }
@@ -1451,7 +1450,7 @@ namespace WireShark
 
                 if (num100 != 0)
                 {
-                    Projectile.NewProjectile((int) zero.X, (int) zero.Y, speedX, speedY, num100, damage2, 2f,
+                    Projectile.NewProjectile(null, (int) zero.X, (int) zero.Y, speedX, speedY, num100, damage2, 2f,
                         Main.myPlayer, 0f, 0f);
                     return;
                 }
@@ -1487,7 +1486,7 @@ namespace WireShark
 
                     if (num119 != 0)
                     {
-                        Projectile.NewProjectile((int) vector2.X, (int) vector2.Y, zero2.X, zero2.Y, num119,
+                        Projectile.NewProjectile(null, (int) vector2.X, (int) vector2.Y, zero2.X, zero2.Y, num119,
                             damage3, 2f, Main.myPlayer, 0f, 0f);
                         return;
                     }
@@ -1531,7 +1530,7 @@ namespace WireShark
         {
             WorldGen.KillTile(i, j, false, false, true);
 
-            Projectile.NewProjectile(i * 16 + 8, j * 16 + 8, 0f, 0f, ProjectileID.Explosives, 500, 10f,
+            Projectile.NewProjectile(null, i * 16 + 8, j * 16 + 8, 0f, 0f, ProjectileID.Explosives, 500, 10f,
                 Main.myPlayer, 0f, 0f);
             return;
         }
@@ -1541,7 +1540,7 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            WorldGen.ExplodeMine(i, j);
+            WorldGen.ExplodeMine(i, j, true);
             return;
         }
     }

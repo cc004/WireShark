@@ -78,7 +78,7 @@ namespace WireShark
             {
                 active = cur;
                 mapTile.frameX = (short)(cur ? 18 : 0);
-                if (WiringWarpper._GatesDone[x, y] != WiringWarpper.cur_gatesdone) WiringWarpper._GatesNext.Enqueue(new Point16(x, y));
+                if (WiringWrapper._GatesDone[x, y] != WiringWrapper.cur_gatesdone) WiringWrapper._GatesNext.Enqueue(new Point16(x, y));
             }
         }
     }

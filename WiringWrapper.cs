@@ -8,7 +8,7 @@ using Terraria.ID;
 
 namespace WireShark
 {
-    public static class WiringWarpper
+    public static class WiringWrapper
     {
 
         public static WireAccelerator _wireAccelerator;

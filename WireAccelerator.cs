@@ -9,7 +9,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent.Events;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static WireShark.WiringWarpper;
+using static WireShark.WiringWrapper;
 
 namespace WireShark {
     public class WireAccelerator {
@@ -53,7 +53,7 @@ namespace WireShark {
         }
 
         public void ActiviateAll(int x, int y, HashSet<int> visited) {
-            WiringWarpper.BigTripWire(x, y, 1, 1);
+            WiringWrapper.BigTripWire(x, y, 1, 1);
         }
         private int[] visited;
         private int now_number;

@@ -11,7 +11,7 @@ using Terraria.DataStructures;
 using Terraria.GameContent.Events;
 using Terraria.ID;
 using Terraria.ModLoader;
-using static WireShark.WiringWarpper;
+using static WireShark.WiringWrapper;
 
 namespace WireShark
 {
@@ -61,7 +61,7 @@ namespace WireShark
         public void HitWire()
         {
             if (tile.HasActuator)
-                WiringWarpper.ActuateForced(i, j);
+                WiringWrapper.ActuateForced(i, j);
             //if (!TileLoader.PreHitWire(i, j, type)) return;
             HitWireInternal();
             //TileLoader.HitWire(i, j, type);
@@ -72,7 +72,7 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            WiringWarpper.HitSwitch(i, j);
+            WiringWrapper.HitSwitch(i, j);
             WorldGen.SquareTileFrame(i, j, true);
             return;
         }
@@ -205,7 +205,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                LogicGate lgate = WiringWarpper.onLogicLampChange[i, j];
+                LogicGate lgate = WiringWrapper.onLogicLampChange[i, j];
                 switch (tile.frameX)
                 {
                     case 0:
@@ -214,7 +214,7 @@ namespace WireShark
                         {
                             ++lgate.lampon;
                             if (!lgate.erroronly)
-                                WiringWarpper._LampsToCheck.Enqueue(lgate);
+                                WiringWrapper._LampsToCheck.Enqueue(lgate);
                         }
 
                         tile.frameX = 18;
@@ -226,7 +226,7 @@ namespace WireShark
                         {
                             --lgate.lampon;
                             if (!lgate.erroronly)
-                                WiringWarpper._LampsToCheck.Enqueue(lgate);
+                                WiringWrapper._LampsToCheck.Enqueue(lgate);
                         }
 
                         tile.frameX = 0;
@@ -235,7 +235,7 @@ namespace WireShark
                     default:
                     {
                         if (lgate != null)
-                            WiringWarpper._LampsToCheck.Enqueue(lgate);
+                            WiringWrapper._LampsToCheck.Enqueue(lgate);
                         break;
                     }
                 }
@@ -503,7 +503,7 @@ namespace WireShark
                         flag2 = false;
                     }
 
-                    if (WiringWarpper.CheckMech(num36, num37, 30) && flag2)
+                    if (WiringWrapper.CheckMech(num36, num37, 30) && flag2)
                     {
                         WorldGen.ShootFromCannon(num36, num37, num38, num39 + 1, 0, 0f, CurrentUser, true);
                         return;

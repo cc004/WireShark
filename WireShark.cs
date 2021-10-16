@@ -4,7 +4,7 @@ using On.Terraria;
 namespace WireShark {
     public class WireShark : Mod {
         public override void Load() {
-            WiringWarpper.Initialize();
+            WiringWrapper.Initialize();
             On.Terraria.Wiring.Actuate += Wiring_Actuate;
             On.Terraria.Wiring.ActuateForced += Wiring_ActuateForced;
             On.Terraria.Wiring.CheckMech += Wiring_CheckMech;
@@ -27,7 +27,7 @@ namespace WireShark {
         }
 
         private void Wiring_UpdateMech(On.Terraria.Wiring.orig_UpdateMech orig) {
-            WiringWarpper.UpdateMech();
+            WiringWrapper.UpdateMech();
         }
 
         private void Wiring_SkipWire_Point16(On.Terraria.Wiring.orig_SkipWire_Point16 orig, Terraria.DataStructures.Point16 point) {
@@ -39,45 +39,45 @@ namespace WireShark {
         }
 
         private void Wiring_SetCurrentUser(On.Terraria.Wiring.orig_SetCurrentUser orig, int plr) {
-            WiringWarpper.SetCurrentUser(plr);
+            WiringWrapper.SetCurrentUser(plr);
         }
 
         private void Wiring_ReActive(On.Terraria.Wiring.orig_ReActive orig, int i, int j) {
-            WiringWarpper.ReActive(i, j);
+            WiringWrapper.ReActive(i, j);
         }
 
         private void Wiring_PokeLogicGate(On.Terraria.Wiring.orig_PokeLogicGate orig, int lampX, int lampY) {
-            WiringWarpper.PokeLogicGate(lampX, lampY);
+            WiringWrapper.PokeLogicGate(lampX, lampY);
         }
         
         private void Wiring_Initialize(On.Terraria.Wiring.orig_Initialize orig) {
-            WiringWarpper.Initialize();
+            WiringWrapper.Initialize();
         }
 
 
         private void Wiring_HitSwitch(On.Terraria.Wiring.orig_HitSwitch orig, int i, int j) {
-            WiringWarpper.HitSwitch(i, j);
+            WiringWrapper.HitSwitch(i, j);
         }
 
         private void Wiring_DeActive(On.Terraria.Wiring.orig_DeActive orig, int i, int j) {
-            WiringWarpper.DeActive(i, j);
+            WiringWrapper.DeActive(i, j);
         }
 
         private bool Wiring_CheckMech(On.Terraria.Wiring.orig_CheckMech orig, int i, int j, int time) {
-            return WiringWarpper.CheckMech(i, j, time);
+            return WiringWrapper.CheckMech(i, j, time);
         }
 
         private void Wiring_ActuateForced(On.Terraria.Wiring.orig_ActuateForced orig, int i, int j) {
-            WiringWarpper.ActuateForced(i, j);
+            WiringWrapper.ActuateForced(i, j);
         }
 
         private bool Wiring_Actuate(On.Terraria.Wiring.orig_Actuate orig, int i, int j) {
-            return WiringWarpper.Actuate(i, j);
+            return WiringWrapper.Actuate(i, j);
         }
 
 
         private void Wiring_TripWire(On.Terraria.Wiring.orig_TripWire orig, int left, int top, int width, int height) {
-            WiringWarpper.BigTripWire(left, top, width, height);
+            WiringWrapper.BigTripWire(left, top, width, height);
         }
 
 

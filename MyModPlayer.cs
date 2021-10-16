@@ -11,9 +11,9 @@ namespace WireShark {
     public class MyModPlayer : ModPlayer {
 
         public override void OnEnterWorld(Player player) {
-            WiringWarpper._wireAccelerator.Preprocess();
-            WiringWarpper.Initialize_GatesDone();
-            WiringWarpper.Initialize_LogicLamps();
+            WiringWrapper._wireAccelerator.Preprocess();
+            WiringWrapper.Initialize_GatesDone();
+            WiringWrapper.Initialize_LogicLamps();
         }
     }
 }

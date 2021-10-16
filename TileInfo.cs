@@ -25,7 +25,7 @@ namespace WireShark
             set => tile.type = value; 
         }
 
-        protected Tile tile;
+        public Tile tile;
 
         private static Dictionary<int, Type> tileinfo = new Dictionary<int, Type>();
 
@@ -36,8 +36,8 @@ namespace WireShark
             {
                 if (!typeof(TileInfo).IsAssignableFrom(type) || type.IsAbstract) continue;
                 var name = type.Name;
-                var id = int.Parse(name.Substring(4));
-                tileinfo.Add(id, type);
+                if (int.TryParse(name.Substring(4), out var id))
+                    tileinfo.Add(id, type);
             }
         }
 

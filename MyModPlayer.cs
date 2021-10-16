@@ -11,16 +11,9 @@ namespace WireShark {
     public class MyModPlayer : ModPlayer {
 
         public override void OnEnterWorld(Player player) {
-            WiringWarpper.GetWireAccelerator().Preprocess();
+            WiringWarpper._wireAccelerator.Preprocess();
             WiringWarpper.Initialize_GatesDone();
             WiringWarpper.Initialize_LogicLamps();
-        }
-
-        public override void PostUpdate() {
-            base.PostUpdate();
-            //if (Main.mouseLeft && Main.mouseLeftRelease) {
-            //    Main.NewText(Main.MouseWorld.ToTileCoordinates16(), Microsoft.Xna.Framework.Color.Red);
-            //}
         }
     }
 }

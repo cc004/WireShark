@@ -35,7 +35,6 @@ namespace WireShark {
 
 
         private int[,,,] _vis;
-        public Dictionary<Point16, byte> _pixelBoxTriggers = new Dictionary<Point16, byte>();
         // D, U, R, L
         private static readonly int[] dx = { 0, 0, 1, -1 };
         private static readonly int[] dy = { 1, -1, 0, 0 };
@@ -75,26 +74,16 @@ namespace WireShark {
             foreach (var tile in info.OutputTiles) {
                 tile.HitWire();
             }
-            foreach (var pBox in info.PixelBoxTriggers) {
-                if (_pixelBoxTriggers.ContainsKey(pBox.Key)) {
-                    byte v = _pixelBoxTriggers[pBox.Key];
-                    v |= pBox.Value;
-                    _pixelBoxTriggers[pBox.Key] = v;
-                } else {
-                    _pixelBoxTriggers.Add(pBox.Key, pBox.Value);
-                }
-                // Main.NewText($"{_pixelBoxTriggers[pBox.Key]}");
-            }
             visited[id] = now_number;
         }
 
 
         public void Preprocess() {
             _inputConnectedCompoents = new int[Main.maxTilesX, Main.maxTilesY, 4];
-
+            _boxes = new ();
             _connectionInfos = new List<ConnectionInfo>();
+            _pixelBoxMap = new();
             _vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
-            _pixelBoxTriggers = new Dictionary<Point16, byte>();
             for (int i = 0; i < Main.maxTilesX; i++) {
                 for (int j = 0; j < Main.maxTilesY; j++) {
                     for (int k = 0; k < 4; k++) {
@@ -124,6 +113,7 @@ namespace WireShark {
                 }
             }
             _vis = null;
+            _pixelBoxMap.Clear();
             visited = new int[_connectionInfos.Count];
             now_number = 1;
             GC.Collect();
@@ -241,6 +231,8 @@ namespace WireShark {
             }
         }
 
+        public List<PixelBox> _boxes;
+        private Dictionary<Point16, PixelBox> _pixelBoxMap;
 
         private ConnectionInfo BFSWires(int id, int wireid, int x, int y) {
             //_toProcess.Clear();
@@ -272,10 +264,21 @@ namespace WireShark {
 
                 if (curTile == null) continue;
 
+                Point16 pt = new Point16(node.X, node.Y);
+
                 if (curTile.IsActive && curTile.type != 0) {
                     if (_sourceTable.Contains(curTile.type)) {
                         _inputConnectedCompoents[node.X, node.Y, wireid] = id;
-                    } else if (IsAppliance(node.X, node.Y)) {
+                    }else if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
+                        if (!_pixelBoxMap.TryGetValue(pt, out var box))
+                            _pixelBoxMap.Add(pt, box = new PixelBox()
+                            {
+                                tile = Main.tile[node.X, node.Y]
+                            });
+                        _boxes.Add(box);
+                        outputs.Add(dir < 2 ? new PixelBoxVertical(box, node.X, node.Y) : new PixelBoxHorizontal(box, node.X, node.Y));
+                    } else if (IsAppliance(node.X, node.Y))
+                    {
                         outputs.Add(TileInfo.CreateTileInfo(node.X, node.Y));
                     }
                 }
@@ -291,7 +294,6 @@ namespace WireShark {
                         if (s == 0) continue;
                     } else if (curTile.type == TileID.PixelBox) {
                         if (dir != i) continue;
-                        Point16 pt = new Point16(node.X, node.Y);
                         if (!pixels.ContainsKey(pt)) {
                             pixels.Add(pt, 0);
                         }

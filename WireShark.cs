@@ -1,4 +1,5 @@
 ﻿using Terraria.ModLoader;
+using On.Terraria;
 
 namespace WireShark {
     public class WireShark : Mod {

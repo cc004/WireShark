@@ -6,6 +6,5 @@ using System.Threading.Tasks;
 using Terraria.ModLoader;
 
 namespace WireShark {
-    public class MyModWorld : ModWorld {
-    }
+
 }

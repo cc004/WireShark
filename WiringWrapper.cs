@@ -541,20 +541,14 @@ namespace WireShark
         }
 
         // Token: 0x06000760 RID: 1888 RVA: 0x00356308 File Offset: 0x00354508
+        private static readonly short[] frames = {-1, -1, 0, 18};
         private static void PixelBoxPass()
         {
-            foreach (var box in _wireAccelerator._boxes)
+            while (_wireAccelerator.boxCount > 0)
             {
-                if (box.state != PixelBox.PixelBoxState.None)
-                {
-                    if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box recalculated = {box.state}");
-                }
-
-                if (box.state.HasFlag(PixelBox.PixelBoxState.Horizontal))
-                {
-                    box.tile.frameX = box.state.HasFlag(PixelBox.PixelBoxState.Vertical) ? (short)18 : (short)0;
-                }
-
+                var box = _wireAccelerator._refreshedBoxes[--_wireAccelerator.boxCount];
+                if (box.state >= PixelBox.PixelBoxState.Horizontal)
+                    box.tile.frameX = frames[(int)box.state];
                 box.state = PixelBox.PixelBoxState.None;
             }
         }

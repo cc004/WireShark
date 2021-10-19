@@ -33,14 +33,19 @@ namespace WireShark
             this.i = i;
             this.j = j;
         }
+        protected override void HitWireInternal()
+        {
+            if (box.state == PixelBox.PixelBoxState.None)
+                WiringWrapper._wireAccelerator._refreshedBoxes[WiringWrapper._wireAccelerator.boxCount++] = box;
+        }
     }
 
     internal class PixelBoxVertical : PixelBoxBase
     {
         protected override void HitWireInternal()
         {
+            base.HitWireInternal();
             box.state |= PixelBox.PixelBoxState.Vertical;
-            if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box set vertical => {box.state}, triggered by={WireAccelerator.triggeredBy}");
         }
 
         public PixelBoxVertical(PixelBox box, int i, int j) : base(box, i, j)
@@ -52,8 +57,8 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
+            base.HitWireInternal();
             box.state |= PixelBox.PixelBoxState.Horizontal;
-            if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box set horizontal => {box.state}, triggered by={WireAccelerator.triggeredBy}");
         }
 
         public PixelBoxHorizontal(PixelBox box, int i, int j) : base(box, i, j)

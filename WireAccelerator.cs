@@ -203,6 +203,10 @@ namespace WireShark {
             foreach (var r in disposing)
                 r.Value = null;
             disposing.Clear();
+            _refreshedBoxes = new PixelBox[_boxes.Count];
+            boxCount = 0;
+            _boxes = null;
+
             GC.Collect();
         }
 
@@ -324,6 +328,8 @@ namespace WireShark {
         }
 
         public List<PixelBox> _boxes;
+        public PixelBox[] _refreshedBoxes;
+        public int boxCount = 0;
         private Dictionary<Point16, PixelBox> _pixelBoxMap;
         internal static int threadCount = 1;
 

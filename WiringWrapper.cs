@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using log4net.Core;
 using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Terraria.ModLoader;
 
 namespace WireShark
 {
@@ -357,13 +359,24 @@ namespace WireShark
             }
         }
 
-        public static void TripWireWithLogic(int l, int t, int w, int h)
+        public static void TripWireWithLogicAdvanced(int l, int t, int w, int h)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 return;
             }
             TripWire(l, t, w, h);
+            LogicGatePass();
+        }
+
+        public static void TripWireWithLogicVanilla(int l, int t, int w, int h)
+        {
+            if (Main.netMode == NetmodeID.MultiplayerClient)
+            {
+                return;
+            }
+            TripWire(l, t, w, h);
+            PixelBoxPass();
             LogicGatePass();
         }
 
@@ -522,6 +535,11 @@ namespace WireShark
         {
             foreach (var box in _wireAccelerator._boxes)
             {
+                if (box.state != PixelBox.PixelBoxState.None)
+                {
+                    if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box recalculated = {box.state}");
+                }
+
                 if (box.state.HasFlag(PixelBox.PixelBoxState.Horizontal))
                 {
                     box.tile.frameX = box.state.HasFlag(PixelBox.PixelBoxState.Vertical) ? (short)18 : (short)0;
@@ -532,7 +550,59 @@ namespace WireShark
         }
 
         // Token: 0x06000761 RID: 1889 RVA: 0x0035647C File Offset: 0x0035467C
-        private static void LogicGatePass()
+        private static Action LogicGatePass = LogicGatePassVanilla;
+        private static Action<int, int, int, int> TripWireWithLogic = TripWireWithLogicVanilla;
+
+        public static void SetPixelBoxBehaviour(bool isVanilla)
+        {
+            LogicGatePass = isVanilla ? LogicGatePassVanilla : LogicGatePassAdvanced;
+            TripWireWithLogic = isVanilla ? TripWireWithLogicVanilla : TripWireWithLogicAdvanced;
+        }
+
+
+        private static void LogicGatePassVanilla()
+        {
+            if (_GatesCurrent.Count == 0)
+            {
+                Clear_Gates();
+                while (_LampsToCheck.Count > 0)
+                {
+                    while (_LampsToCheck.Count > 0)
+                    {
+                        _LampsToCheck.Dequeue().UpdateLogicGate();
+                        /*
+                        Point16 point = ;
+                        CheckLogicGate((int)point.X, (int)point.Y);*/
+                    }
+                    //if (_GatesNext.Count > 0)
+                    //    Main.NewText($"gate counts to check = {_GatesNext.Count}");
+                    while (_GatesNext.Count > 0)
+                    {
+                        Utils.Swap<Queue<Point16>>(ref _GatesCurrent, ref _GatesNext);
+                        while (_GatesCurrent.Count > 0)
+                        {
+                            Point16 key = _GatesCurrent.Peek();
+                            if (_GatesDone[key.X, key.Y] == cur_gatesdone)
+                            {
+                                _GatesCurrent.Dequeue();
+                            }
+                            else
+                            {
+                                _GatesDone[key.X, key.Y] = cur_gatesdone;
+                                TripWireWithLogic(key.X, key.Y, 1, 1);
+                                _GatesCurrent.Dequeue();
+                            }
+                        }
+                    }
+                }
+                Clear_Gates();
+                if (Wiring.blockPlayerTeleportationForOneIteration)
+                {
+                    Wiring.blockPlayerTeleportationForOneIteration = false;
+                }
+            }
+        }
+        private static void LogicGatePassAdvanced()
         {
             if (_GatesCurrent.Count == 0)
             {

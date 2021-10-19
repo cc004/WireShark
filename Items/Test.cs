@@ -10,34 +10,29 @@ namespace WireShark.Items {
             Tooltip.SetDefault("This is a basic modded sword.");
         }
 
+        public static int x, y;
         public override void SetDefaults() {
-            item.damage = 50;
-            item.melee = true;
-            item.width = 40;
-            item.height = 40;
-            item.useTime = 20;
-            item.useAnimation = 20;
-            item.useStyle = ItemUseStyleID.SwingThrow;
-            item.knockBack = 6;
-            item.value = 10000;
-            item.rare = ItemRarityID.Green;
-            item.UseSound = SoundID.Item1;
-            item.autoReuse = true;
+            Item.damage = 50;
+            Item.width = 40;
+            Item.height = 40;
+            Item.useTime = 20;
+            Item.useAnimation = 20;
+            Item.knockBack = 6;
+            Item.value = 10000;
+            Item.rare = ItemRarityID.Green;
+            Item.UseSound = SoundID.Item1;
+            Item.autoReuse = true;
+            Item.useStyle = ItemUseStyleID.Swing;
         }
-        public override bool UseItem(Player player) {
+        public override bool? UseItem(Player player) {
             if (player.itemAnimation == player.itemAnimationMax - 2) {
                 Point p = Main.MouseWorld.ToTileCoordinates();
-                WiringWarpper.GetWireAccelerator().ActiviateAll(p.X, p.Y, new System.Collections.Generic.HashSet<int>());
-                // Main.NewText("Activate");
+                //WiringWarpper.GetWireAccelerator().ActiviateAll(p.X, p.Y, new System.Collections.Generic.HashSet<int>());
+                x = p.X;
+                y = p.Y;
+                Main.NewText($"point={p}");
             }
             return base.UseItem(player);
-        }
-        public override void AddRecipes() {
-            ModRecipe recipe = new ModRecipe(mod);
-            recipe.AddIngredient(ItemID.DirtBlock, 10);
-            recipe.AddTile(TileID.WorkBenches);
-            recipe.SetResult(this);
-            recipe.AddRecipe();
         }
     }
 }

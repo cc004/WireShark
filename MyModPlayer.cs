@@ -8,9 +8,9 @@ using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace WireShark {
-    public class MyModPlayer : ModPlayer {
-
-        public override void OnEnterWorld(Player player) {
+    public class MyModSystem : ModSystem {
+        public override void OnWorldLoad()
+        {
             WiringWrapper._wireAccelerator.Preprocess();
             WiringWrapper.Initialize_GatesDone();
             WiringWrapper.Initialize_LogicLamps();

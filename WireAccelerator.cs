@@ -1,8 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.DataStructures;
@@ -12,8 +16,8 @@ using Terraria.ModLoader;
 using static WireShark.WiringWrapper;
 
 namespace WireShark {
-    public class WireAccelerator {
-
+    public class WireAccelerator
+    {
         private static readonly HashSet<int> _sourceTable = new HashSet<int>() {
             135, 314, 428, 442, 440, 136, 144, 441, 468, 132, 411, TileID.LogicGate, TileID.LogicSensor
         };
@@ -27,34 +31,24 @@ namespace WireShark {
                 Dir = dir;
             }
         };
-
-        private struct ConnectionInfo {
-            public TileInfo[] OutputTiles;
-            public KeyValuePair<Point16, byte>[] PixelBoxTriggers;
-        };
-
-
-        private int[,,,] _vis;
+        
         // D, U, R, L
         private static readonly int[] dx = { 0, 0, 1, -1 };
         private static readonly int[] dy = { 1, -1, 0, 0 };
-        private List<ConnectionInfo> _connectionInfos;
+        private TileInfo[][] _connectionInfos;
         private int[,,] _inputConnectedCompoents;
 
-        private int GetWireID(int X, int Y) {
+        private byte GetWireID(int X, int Y) {
             Tile tile = Main.tile[X, Y];
             if (tile == null) return 0;
-            int mask = 0;
+            byte mask = 0;
             if (tile.BlueWire) mask |= 1;
             if (tile.GreenWire) mask |= 2;
             if (tile.RedWire) mask |= 4;
             if (tile.YellowWire) mask |= 8;
             return mask;
         }
-
-        public void ActiviateAll(int x, int y, HashSet<int> visited) {
-            WiringWrapper.BigTripWire(x, y, 1, 1);
-        }
+        
         private int[] visited;
         private int now_number;
 
@@ -63,59 +57,152 @@ namespace WireShark {
             ++now_number;
         }
 
-        public void Activiate(int x, int y, int wire) {
-            int wireid = GetWireID(x, y);
+        internal static Point16 triggeredBy;
+
+        public void Activiate(int x, int y, int wire)
+        {
+            int wireid = _wireCache[x, y];
             if (wireid == 0) return;
             if (((wireid >> wire) & 1) == 0) return;
             int id = _inputConnectedCompoents[x, y, wire];
-            if (id == -1 ||/* visited.Contains(id)*/ visited[id] == now_number) return;
+            if (id == -1 || visited[id] == now_number) return;
             var info = _connectionInfos[id];
-
-            foreach (var tile in info.OutputTiles) {
+            triggeredBy = new Point16(x, y);
+            foreach (var tile in info) {
+                //File.AppendAllText("wire.log",$"logic gate {triggeredBy} triggers tile {tile}\n");
                 tile.HitWire();
             }
             visited[id] = now_number;
         }
 
+        private static ConcurrentQueue<Ref<int[,,,]>> disposing = new();
+
+        [ThreadStatic]
+        private static Ref<int[,,,]> __vis;
+
+        private static int[,,,] _vis
+        {
+            get
+            {
+                if (__vis?.Value == null)
+                {
+                    var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
+                    for (int i = 0; i < Main.maxTilesX; i++)
+                    {
+                        for (int j = 0; j < Main.maxTilesY; j++)
+                        {
+                            for (int k = 0; k < 4; k++)
+                            {
+                                ___vis[i, j, k, 0] = -1;
+                                ___vis[i, j, k, 1] = -1;
+                                ___vis[i, j, k, 2] = -1;
+                            }
+                        }
+                    }
+
+                    __vis = new Ref<int[,,,]>(___vis);
+                    disposing.Enqueue(__vis);
+                }
+
+                return __vis.Value;
+            }
+        }
+
+        private int[,,] _visIndexCache;
+        private byte[,] _wireCache;
+        private TileInfo[,] _tileCache;
+        internal static bool noWireOrder;
 
         public void Preprocess() {
             _inputConnectedCompoents = new int[Main.maxTilesX, Main.maxTilesY, 4];
             _boxes = new ();
-            _connectionInfos = new List<ConnectionInfo>();
             _pixelBoxMap = new();
-            _vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
+            _visIndexCache = new int[Main.maxTilesX, Main.maxTilesY, 4];
+            _tileCache = new TileInfo[Main.maxTilesX, Main.maxTilesY];
+            _wireCache = new byte[Main.maxTilesX, Main.maxTilesY];
+
             for (int i = 0; i < Main.maxTilesX; i++) {
-                for (int j = 0; j < Main.maxTilesY; j++) {
-                    for (int k = 0; k < 4; k++) {
-                        _vis[i, j, k, 0] = -1;
-                        _vis[i, j, k, 1] = -1;
-                        _vis[i, j, k, 2] = -1;
+                for (int j = 0; j < Main.maxTilesY; j++)
+                {
+                    _wireCache[i, j] = GetWireID(i, j);
+                    for (int k = 0; k < 4; k++)
+                    {
                         _inputConnectedCompoents[i, j, k] = -1;
-                        _inputConnectedCompoents[i, j, k] = -1;
-                        _inputConnectedCompoents[i, j, k] = -1;
+
+                        var curTile = Main.tile[i, j];
+                        var dir = k;
+                        if (curTile != null)
+                        {
+                            if (curTile.type == TileID.WirePipe)
+                            {
+                                int s = GetWireBoxIndex(curTile, dir);
+                                _visIndexCache[i, j, k] = s;
+                            }
+                            else if (curTile.type == TileID.PixelBox)
+                            {
+                                _visIndexCache[i, j, k] = dir / 2;
+                            }
+                            else
+                            {
+                                _visIndexCache[i, j, k] = 0;
+                            }
+                        }
                     }
                 }
             }
-            for (int i = 0; i < Main.maxTilesX; i++) {
-                for (int j = 0; j < Main.maxTilesY; j++) {
-                    if (Main.tile[i, j] != null) {
-                        int wireid = GetWireID(i, j);
-                        if (wireid == 0 || Main.tile[i, j].type == TileID.WirePipe ||
-                                    Main.tile[i, j].type == TileID.PixelBox) continue;
 
+            int count = 0;
+            var tasks = new List<(int, int, int, int)>();
+
+            for (int j = 0; j < Main.maxTilesY; j++)
+            {
+                for (int i = 0; i < Main.maxTilesX; i++) {
+                    if (Main.tile[i, j] != null)
+                    {
+                        if (!_sourceTable.Contains(Main.tile[i, j].type)) continue;
+                        int wireid = _wireCache[i, j];
+                        if (wireid == 0) continue;
                         for (int k = 0; k < 4; k++) {
-                            if (((wireid >> k) & 1) == 0 || _vis[i, j, k, 0] != -1) continue;
-                            var info = BFSWires(_connectionInfos.Count, k, i, j);
-                            _connectionInfos.Add(info);
+                            if (((wireid >> k) & 1) == 0) continue;
+                            _inputConnectedCompoents[i, j, k] = count;
+                            tasks.Add((count++, k, i, j));
+                            //var info = BFSWires(_connectionInfos.Count, k, i, j);
+                            //_inputConnectedCompoents[i, j, k] = _connectionInfos.Count;
+                            //_connectionInfos.Add(info);
                         }
 
                     }
                 }
             }
-            _vis = null;
-            _pixelBoxMap.Clear();
-            visited = new int[_connectionInfos.Count];
+
+            _connectionInfos = new TileInfo[count][];
+            int finished = 0, total = tasks.Count;
+            new Thread(() =>
+            {
+                while (finished != total)
+                {
+                    if (finished > 0)
+                        Main.statusText =$"preprocessing circuit {finished * 1f / total:P1}";
+                    Thread.Sleep(100);
+                }
+            }).Start();
+            tasks.AsParallel().WithDegreeOfParallelism(threadCount).ForAll(task =>
+            {
+                if (noWireOrder && _vis[task.Item3, task.Item4, task.Item2, 0] != -1)
+                    _connectionInfos[task.Item1] = _connectionInfos[_vis[task.Item3, task.Item4, task.Item2, 0]];
+                else
+                    _connectionInfos[task.Item1] = BFSWires(_vis, task.Item1, task.Item2, task.Item3, task.Item4);
+                Interlocked.Increment(ref finished);
+            });
+
+            _tileCache = null;
+            _pixelBoxMap = null;
+            visited = new int[count];
             now_number = 1;
+
+            foreach (var r in disposing)
+                r.Value = null;
+            disposing.Clear();
             GC.Collect();
         }
 
@@ -125,72 +212,77 @@ namespace WireShark {
             int type = (int)tile.type;
             if (tile.HasActuator) return true;
             if (tile.IsActive) {
-                if (type == 144) return true;
-                else if (type == 421 && !tile.HasActuator) return true;
-                else if (type == 422 && !tile.HasActuator) return true;
-                if (type >= 255 && type <= 268 && !tile.HasActuator) return true;
-                else {
-                    if (type == 419) return true;
-                    if (type == 406) return true;
-                    if (type == 452) return true;
-                    if (type == 411) return true;
-                    if (type == 425) return true;
-                    else {
-                        if (type == 405) return true;
-                        if (type == 209) return true;
-                        else if (type == 212) return true;
-                        else {
-                            if (type == 215) return true;
-                            if (type == 130) return true;
-                            else {
-                                if (type == 131) return true;
-                                if (type == 387 || type == 386) return true;
-                                else {
-                                    if (type == 389 || type == 388) return true;
-                                    if (type == 11) return true;
-                                    else if (type == 10) return true;
-                                    else {
-                                        if (type == 216) return true;
-                                        if (type == 497 || (type == 15 && tile.frameY / 40 == 1) || (type == 15 && tile.frameY / 40 == 20)) return true;
-                                        else if (type == 335) return true;
-                                        else if (type == 338) return true;
-                                        else if (type == 235) return true;
-                                        else {
-                                            if (type == 4) return true;
-                                            if (type == 429) return true;
-                                            if (type == 149) return true;
-                                            if (type == 244) return true;
-                                            if (type == 565) return true;
-                                            if (type == 42) return true;
-                                            if (type == 93) return true;
-                                            if (type == 126 || type == 95 || type == 100 || type == 173 || type == 564) return true;
-                                            if (type == 593) return true;
-                                            if (type == 594) return true;
-                                            if (type == 34) return true;
-                                            if (type == 314) return true;
-                                            if (type == 33 || type == 174 || type == 49 || type == 372) return true;
-                                            if (type == 92) return true;
-                                            if (type == 137) return true;
-                                            if (type == 443) return true;
-                                            if (type == 531) return true;
-                                            if (type == 139 || type == 35) return true;
-                                            if (type == 207) return true;
-                                            if (type == 410 || type == 480 || type == 509) return true;
-                                            if (type == 455) return true;
-                                            if (type == 141) return true;
-                                            if (type == 210) return true;
-                                            if (type == 142 || type == 143) return true;
-                                            if (type == 105) return true;
-                                            if (type == 349) return true;
-                                            if (type == 506) return true;
-                                            if (type == 546) return true;
-                                            if (type == 557) return true;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                switch (type)
+                {
+                    case 144:
+                    case 421 when !tile.HasActuator:
+                    case 422 when !tile.HasActuator:
+                    case >= 255 and <= 268 when !tile.HasActuator:
+                    case 419:
+                    case 406:
+                    case 452:
+                    case 411:
+                    case 425:
+                    case 405:
+                    case 209:
+                    case 212:
+                    case 215:
+                    case 130:
+                    case 131:
+                    case 387:
+                    case 386:
+                    case 389:
+                    case 388:
+                    case 11:
+                    case 10:
+                    case 216:
+                    case 497:
+                    case 15 when tile.frameY / 40 == 1:
+                    case 15 when tile.frameY / 40 == 20:
+                    case 335:
+                    case 338:
+                    case 235:
+                    case 4:
+                    case 429:
+                    case 149:
+                    case 244:
+                    case 565:
+                    case 42:
+                    case 93:
+                    case 126:
+                    case 95:
+                    case 100:
+                    case 173:
+                    case 564:
+                    case 593:
+                    case 594:
+                    case 34:
+                    case 314:
+                    case 33:
+                    case 174:
+                    case 49:
+                    case 372:
+                    case 92:
+                    case 137:
+                    case 443:
+                    case 531:
+                    case 139:
+                    case 35:
+                    case 207:
+                    case 410:
+                    case 480:
+                    case 509:
+                    case 455:
+                    case 141:
+                    case 210:
+                    case 142:
+                    case 143:
+                    case 105:
+                    case 349:
+                    case 506:
+                    case 546:
+                    case 557:
+                        return true;
                 }
             }
             return false;
@@ -233,53 +325,57 @@ namespace WireShark {
 
         public List<PixelBox> _boxes;
         private Dictionary<Point16, PixelBox> _pixelBoxMap;
+        internal static int threadCount = 1;
 
-        private ConnectionInfo BFSWires(int id, int wireid, int x, int y) {
-            //_toProcess.Clear();
-            //_toProcess.Add(new Point(x, y), 4);
-
+        private TileInfo[] BFSWires(int[,,,] _vis, int id, int wireid, int x, int y) {
             Queue<Node> Q = new Queue<Node>();
             Q.Enqueue(new Node(x, y, 0));
-
             List<TileInfo> outputs = new List<TileInfo>();
-            Dictionary<Point16, byte> pixels = new Dictionary<Point16, byte>();
+            var wirebit = 1 << wireid;
             while (Q.Count > 0) {
-                var node = Q.Peek();
-                Q.Dequeue();
-
+                var node = Q.Dequeue();
+                if (node.X == 2129 && node.Y == 282) Debugger.Break();
                 // 到达当前点使用的是哪个方向
                 int dir = node.Dir;
                 Tile curTile = Main.tile[node.X, node.Y];
-                if (curTile.type == TileID.WirePipe) {
-                    int s = GetWireBoxIndex(curTile, dir);
-                    if (_vis[node.X, node.Y, wireid, s] != -1) continue;
-                    _vis[node.X, node.Y, wireid, s] = id;
-                } else if (curTile.type == TileID.PixelBox) {
-                    if (_vis[node.X, node.Y, wireid, dir / 2] != -1) continue;
-                    _vis[node.X, node.Y, wireid, dir / 2] = id;
-                } else {
-                    if (_vis[node.X, node.Y, wireid, 0] != -1) continue;
-                    _vis[node.X, node.Y, wireid, 0] = id;
-                }
+                var index = _visIndexCache[node.X, node.Y, dir];
 
-                if (curTile == null) continue;
+                try
+                {
+                    if (_vis[node.X, node.Y, wireid, index] == id) continue;
+                    _vis[node.X, node.Y, wireid, index] = id;
+                }
+                catch (Exception e)
+                {
+                    throw new Exception($"{node.X}, {node.Y}, {wireid}, {index}");
+                }
 
                 Point16 pt = new Point16(node.X, node.Y);
 
                 if (curTile.IsActive && curTile.type != 0) {
-                    if (_sourceTable.Contains(curTile.type)) {
-                        _inputConnectedCompoents[node.X, node.Y, wireid] = id;
-                    }else if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
+                    if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
                         if (!_pixelBoxMap.TryGetValue(pt, out var box))
                             _pixelBoxMap.Add(pt, box = new PixelBox()
                             {
-                                tile = Main.tile[node.X, node.Y]
+                                tile = Main.tile[node.X, node.Y],
+                                x = node.X,
+                                y = node.Y
                             });
                         _boxes.Add(box);
-                        outputs.Add(dir < 2 ? new PixelBoxVertical(box, node.X, node.Y) : new PixelBoxHorizontal(box, node.X, node.Y));
-                    } else if (IsAppliance(node.X, node.Y))
+                        TileInfo tile = dir < 2
+                            ? new PixelBoxVertical(box, node.X, node.Y)
+                            : new PixelBoxHorizontal(box, node.X, node.Y);
+                        outputs.Add(tile);
+                        _tileCache[node.X, node.Y] = tile;
+                    } else if (_tileCache[node.X, node.Y] != null)
                     {
-                        outputs.Add(TileInfo.CreateTileInfo(node.X, node.Y));
+                        outputs.Add(_tileCache[node.X, node.Y]);
+                    }
+                    else if (IsAppliance(node.X, node.Y))
+                    {
+                        var tile = TileInfo.CreateTileInfo(node.X, node.Y);
+                        outputs.Add(tile);
+                        _tileCache[node.X, node.Y] = tile;
                     }
                 }
 
@@ -292,26 +388,14 @@ namespace WireShark {
                     if (curTile.type == TileID.WirePipe) {
                         int s = GetWireBoxIndex2(curTile, dir, i);
                         if (s == 0) continue;
-                    } else if (curTile.type == TileID.PixelBox) {
-                        if (dir != i) continue;
-                        if (!pixels.ContainsKey(pt)) {
-                            pixels.Add(pt, 0);
-                        }
-                        if (i / 2 < 1) {
-                            pixels[pt] |= 2;
-                        } else {
-                            pixels[pt] |= 1;
-                        }
                     }
-                    if (((GetWireID(nx, ny) >> wireid) & 1) != 0) {
+                    if ((_wireCache[nx, ny] & wirebit) != 0) {
                         Q.Enqueue(new Node(nx, ny, i));
                     }
                 }
             }
-            return new ConnectionInfo {
-                OutputTiles = outputs.ToArray(),
-                PixelBoxTriggers = pixels.ToArray()
-            };
+
+            return outputs.ToArray();
         }
 
     }

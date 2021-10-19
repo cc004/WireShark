@@ -18,7 +18,6 @@ namespace WireShark {
             On.Terraria.Wiring.SkipWire_Point16 += Wiring_SkipWire_Point16;
             On.Terraria.Wiring.TripWire += Wiring_TripWire;
             On.Terraria.Wiring.UpdateMech += Wiring_UpdateMech;
-
             On.Terraria.WorldGen.StartRoomCheck += WorldGen_StartRoomCheck;
         }
 

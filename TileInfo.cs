@@ -17,6 +17,11 @@ namespace WireShark
 {
     public abstract class TileInfo
     {
+        public override string ToString()
+        {
+            return $"{tile}@({i},{j})";
+        }
+
         protected int i, j;
 
         public ushort type 

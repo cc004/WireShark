@@ -20,6 +20,7 @@ namespace WireShark
 
         public PixelBoxState state;
         public Tile tile;
+        public int x, y;
     }
 
     internal abstract class PixelBoxBase : TileInfo
@@ -39,6 +40,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             box.state |= PixelBox.PixelBoxState.Vertical;
+            if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box set vertical => {box.state}, triggered by={WireAccelerator.triggeredBy}");
         }
 
         public PixelBoxVertical(PixelBox box, int i, int j) : base(box, i, j)
@@ -51,6 +53,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             box.state |= PixelBox.PixelBoxState.Horizontal;
+            if (box.x == Items.Test.x && box.y == Items.Test.y) Main.NewText($"pixel box set horizontal => {box.state}, triggered by={WireAccelerator.triggeredBy}");
         }
 
         public PixelBoxHorizontal(PixelBox box, int i, int j) : base(box, i, j)

@@ -334,7 +334,7 @@ namespace WireShark {
             var wirebit = 1 << wireid;
             while (Q.Count > 0) {
                 var node = Q.Dequeue();
-                if (node.X == 2129 && node.Y == 282) Debugger.Break();
+                //if (node.X == 2129 && node.Y == 282) Debugger.Break();
                 // 到达当前点使用的是哪个方向
                 int dir = node.Dir;
                 Tile curTile = Main.tile[node.X, node.Y];
@@ -386,8 +386,10 @@ namespace WireShark {
                     Tile tile = Main.tile[nx, ny];
                     if (tile == null) continue;
                     if (curTile.type == TileID.WirePipe) {
-                        int s = GetWireBoxIndex2(curTile, dir, i);
-                        if (s == 0) continue;
+                        if (GetWireBoxIndex2(curTile, dir, i) == 0) continue;
+                    } else if (curTile.type == TileID.PixelBox)
+                    {
+                        if (dir != i) continue;
                     }
                     if ((_wireCache[nx, ny] & wirebit) != 0) {
                         Q.Enqueue(new Node(nx, ny, i));

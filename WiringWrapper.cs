@@ -406,62 +406,8 @@ namespace WireShark
             }
             Vector2[] array = new Vector2[8];
             int num = 0;
-            for (int i = left; i < left + width; i++)
-            {
-                for (int j = top; j < top + height; j++)
-                {
-                    Point16 back = new Point16(i, j);
-                    Tile tile = Main.tile[i, j];
-                    if (tile != null && tile.BlueWire)
-                    {
-                        _wireList.PushBack(back);
-                    }
-                }
-            }
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 1);
-                if (_numInPump > 0 && _numOutPump > 0)
-                {
-                    XferWater();
-                }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
-            for (int k = left; k < left + width; k++)
-            {
-                for (int l = top; l < top + height; l++)
-                {
-                    Point16 back2 = new Point16(k, l);
-                    Tile tile2 = Main.tile[k, l];
-                    if (tile2 != null && tile2.GreenWire)
-                    {
-                        _wireList.PushBack(back2);
-                    }
-                }
-            }
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 2);
-                if (_numInPump > 0 && _numOutPump > 0)
-                {
-                    XferWater();
-                }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
+
+
             _teleport[0].X = -1f;
             _teleport[0].Y = -1f;
             _teleport[1].X = -1f;
@@ -490,6 +436,68 @@ namespace WireShark
             }
             array[num++] = _teleport[0];
             array[num++] = _teleport[1];
+
+
+
+            for (int i = left; i < left + width; i++)
+            {
+                for (int j = top; j < top + height; j++)
+                {
+                    Point16 back = new Point16(i, j);
+                    Tile tile = Main.tile[i, j];
+                    if (tile != null && tile.BlueWire)
+                    {
+                        _wireList.PushBack(back);
+                    }
+                }
+            }
+            _teleport[0].X = -1f;
+            _teleport[0].Y = -1f;
+            _teleport[1].X = -1f;
+            _teleport[1].Y = -1f;
+            if (_wireList.Count > 0)
+            {
+                _numInPump = 0;
+                _numOutPump = 0;
+                HitWire(_wireList, 1);
+                if (_numInPump > 0 && _numOutPump > 0)
+                {
+                    XferWater();
+                }
+            }
+            array[num++] = _teleport[0];
+            array[num++] = _teleport[1];
+
+
+            for (int k = left; k < left + width; k++)
+            {
+                for (int l = top; l < top + height; l++)
+                {
+                    Point16 back2 = new Point16(k, l);
+                    Tile tile2 = Main.tile[k, l];
+                    if (tile2 != null && tile2.GreenWire)
+                    {
+                        _wireList.PushBack(back2);
+                    }
+                }
+            }
+            _teleport[0].X = -1f;
+            _teleport[0].Y = -1f;
+            _teleport[1].X = -1f;
+            _teleport[1].Y = -1f;
+            if (_wireList.Count > 0)
+            {
+                _numInPump = 0;
+                _numOutPump = 0;
+                HitWire(_wireList, 2);
+                if (_numInPump > 0 && _numOutPump > 0)
+                {
+                    XferWater();
+                }
+            }
+            array[num++] = _teleport[0];
+            array[num++] = _teleport[1];
+
             _teleport[0].X = -1f;
             _teleport[0].Y = -1f;
             _teleport[1].X = -1f;
@@ -518,6 +526,8 @@ namespace WireShark
             }
             array[num++] = _teleport[0];
             array[num++] = _teleport[1];
+
+
             for (int num4 = 0; num4 < 8; num4 += 2)
             {
                 _teleport[0] = array[num4];

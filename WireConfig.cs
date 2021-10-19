@@ -24,7 +24,7 @@ namespace WireShark
 
         [Label("No Order in Wires")]
         [Tooltip("If the order on the same wire counts, enable it will increase preprocessing speed, but the circuit may be slightly different from vanilla logic")]
-        [DefaultValue(false)]
+        [DefaultValue(true)]
         public bool NoWireOrder { get; set; }
 
         public override void OnChanged()

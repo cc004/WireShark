@@ -80,7 +80,7 @@ namespace WireShark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public virtual void UpdateLogicGate()
         {
-            bool cur = GetState();
+            var cur = GetState();
             //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
             if (active ^ cur)
             {

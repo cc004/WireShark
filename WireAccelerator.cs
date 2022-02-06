@@ -39,7 +39,7 @@ namespace WireShark {
         private int[,,] _inputConnectedCompoents;
 
         private byte GetWireID(int X, int Y) {
-            Tile tile = Main.tile[X, Y];
+            var tile = Main.tile[X, Y];
             if (tile == null) return 0;
             byte mask = 0;
             if (tile.BlueWire) mask |= 1;
@@ -64,7 +64,7 @@ namespace WireShark {
             int wireid = _wireCache[x, y];
             if (wireid == 0) return;
             if (((wireid >> wire) & 1) == 0) return;
-            int id = _inputConnectedCompoents[x, y, wire];
+            var id = _inputConnectedCompoents[x, y, wire];
             if (id == -1 || visited[id] == now_number) return;
             var info = _connectionInfos[id];
             triggeredBy = new Point16(x, y);
@@ -87,11 +87,11 @@ namespace WireShark {
                 if (__vis?.Value == null)
                 {
                     var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
-                    for (int i = 0; i < Main.maxTilesX; i++)
+                    for (var i = 0; i < Main.maxTilesX; i++)
                     {
-                        for (int j = 0; j < Main.maxTilesY; j++)
+                        for (var j = 0; j < Main.maxTilesY; j++)
                         {
-                            for (int k = 0; k < 4; k++)
+                            for (var k = 0; k < 4; k++)
                             {
                                 ___vis[i, j, k, 0] = -1;
                                 ___vis[i, j, k, 1] = -1;
@@ -121,11 +121,11 @@ namespace WireShark {
             _tileCache = new TileInfo[Main.maxTilesX, Main.maxTilesY];
             _wireCache = new byte[Main.maxTilesX, Main.maxTilesY];
 
-            for (int i = 0; i < Main.maxTilesX; i++) {
-                for (int j = 0; j < Main.maxTilesY; j++)
+            for (var i = 0; i < Main.maxTilesX; i++) {
+                for (var j = 0; j < Main.maxTilesY; j++)
                 {
                     _wireCache[i, j] = GetWireID(i, j);
-                    for (int k = 0; k < 4; k++)
+                    for (var k = 0; k < 4; k++)
                     {
                         _inputConnectedCompoents[i, j, k] = -1;
 
@@ -135,7 +135,7 @@ namespace WireShark {
                         {
                             if (curTile.type == TileID.WirePipe)
                             {
-                                int s = GetWireBoxIndex(curTile, dir);
+                                var s = GetWireBoxIndex(curTile, dir);
                                 _visIndexCache[i, j, k] = s;
                             }
                             else if (curTile.type == TileID.PixelBox)
@@ -151,18 +151,18 @@ namespace WireShark {
                 }
             }
 
-            int count = 0;
+            var count = 0;
             var tasks = new List<(int, int, int, int)>();
 
-            for (int j = 0; j < Main.maxTilesY; j++)
+            for (var j = 0; j < Main.maxTilesY; j++)
             {
-                for (int i = 0; i < Main.maxTilesX; i++) {
+                for (var i = 0; i < Main.maxTilesX; i++) {
                     if (Main.tile[i, j] != null)
                     {
                         if (!_sourceTable.Contains(Main.tile[i, j].type)) continue;
                         int wireid = _wireCache[i, j];
                         if (wireid == 0) continue;
-                        for (int k = 0; k < 4; k++) {
+                        for (var k = 0; k < 4; k++) {
                             if (((wireid >> k) & 1) == 0) continue;
                             _inputConnectedCompoents[i, j, k] = count;
                             tasks.Add((count++, k, i, j));
@@ -212,8 +212,10 @@ namespace WireShark {
 
 
         private static bool IsAppliance(int i, int j) {
-            Tile tile = Main.tile[i, j];
-            int type = (int)tile.type;
+            var tile = Main.tile[i, j];
+            var type = (int)tile.type;
+            if (ModContent.GetModTile(type) != null)
+                return true;
             if (tile.HasActuator) return true;
             if (tile.IsActive) {
                 switch (type)
@@ -293,7 +295,7 @@ namespace WireShark {
         }
 
         private int GetWireBoxIndex2(Tile tile, int dir, int i) {
-            int frame = tile.frameX / 18;
+            var frame = tile.frameX / 18;
             if (frame == 0) {
                 if (i != dir) return 0;
                 if (dir == 0 || dir == 1) return 1;
@@ -314,7 +316,7 @@ namespace WireShark {
         }
 
         private int GetWireBoxIndex(Tile tile, int dir) {
-            int frame = tile.frameX / 18;
+            var frame = tile.frameX / 18;
             if (frame == 0) {
                 if (dir == 0 || dir == 1) return 1;
                 else return 2;
@@ -334,16 +336,16 @@ namespace WireShark {
         internal static int threadCount = 1;
 
         private TileInfo[] BFSWires(int[,,,] _vis, int id, int wireid, int x, int y) {
-            Queue<Node> Q = new Queue<Node>();
+            var Q = new Queue<Node>();
             Q.Enqueue(new Node(x, y, 0));
-            List<TileInfo> outputs = new List<TileInfo>();
+            var outputs = new List<TileInfo>();
             var wirebit = 1 << wireid;
             while (Q.Count > 0) {
                 var node = Q.Dequeue();
                 //if (node.X == 2129 && node.Y == 282) Debugger.Break();
                 // 到达当前点使用的是哪个方向
-                int dir = node.Dir;
-                Tile curTile = Main.tile[node.X, node.Y];
+                var dir = node.Dir;
+                var curTile = Main.tile[node.X, node.Y];
                 var index = _visIndexCache[node.X, node.Y, dir];
 
                 try
@@ -356,7 +358,7 @@ namespace WireShark {
                     throw new Exception($"{node.X}, {node.Y}, {wireid}, {index}");
                 }
 
-                Point16 pt = new Point16(node.X, node.Y);
+                var pt = new Point16(node.X, node.Y);
 
                 if (curTile.IsActive && curTile.type != 0) {
                     if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
@@ -385,11 +387,11 @@ namespace WireShark {
                     }
                 }
 
-                for (int i = 0; i < 4; i++) {
-                    int nx = dx[i] + node.X;
-                    int ny = dy[i] + node.Y;
+                for (var i = 0; i < 4; i++) {
+                    var nx = dx[i] + node.X;
+                    var ny = dy[i] + node.Y;
                     if (nx < 2 || nx >= Main.maxTilesX - 2 || ny < 2 || ny >= Main.maxTilesY - 2) continue;
-                    Tile tile = Main.tile[nx, ny];
+                    var tile = Main.tile[nx, ny];
                     if (tile == null) continue;
                     if (curTile.type == TileID.WirePipe) {
                         if (GetWireBoxIndex2(curTile, dir, i) == 0) continue;

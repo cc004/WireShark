@@ -24,7 +24,7 @@ namespace WireShark.Items {
         }
         public override bool? UseItem(Player player) {
             if (player.itemAnimation == player.itemAnimationMax - 2) {
-                Point p = Main.MouseWorld.ToTileCoordinates();
+                var p = Main.MouseWorld.ToTileCoordinates();
                 Main.NewText($"point={p}");
             }
             return base.UseItem(player);

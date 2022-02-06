@@ -49,13 +49,32 @@ namespace WireShark
             _mechTime = new int[1000];
         }
 
+        public static void Unload()
+        {
+            _wireAccelerator = null;
+            _wireList = null;
+            _wireDirectionList = null;
+            _toProcess = null;
+            _GatesCurrent = null;
+            _GatesNext = null;
+            _LampsToCheck = null;
+            _inPumpX = null;
+            _inPumpY = null;
+            _outPumpX = null;
+            _outPumpY = null;
+            _teleport = null;
+            _mechX = null;
+            _mechY = null;
+            _mechTime = null;
+        }
+
         // Token: 0x06000757 RID: 1879 RVA: 0x003552A8 File Offset: 0x003534A8
 
         // Mech 应该就是可以激活的计时器
         public static void UpdateMech()
         {
             SetCurrentUser(-1);
-            for (int i = _numMechs - 1; i >= 0; i--)
+            for (var i = _numMechs - 1; i >= 0; i--)
             {
                 _mechTime[i]--;
                 if (Main.tile[_mechX[i], _mechY[i]].IsActive && Main.tile[_mechX[i], _mechY[i]].type == 144)
@@ -66,7 +85,7 @@ namespace WireShark
                     }
                     else
                     {
-                        int num = Main.tile[_mechX[i], _mechY[i]].frameX / 18;
+                        var num = Main.tile[_mechX[i], _mechY[i]].frameX / 18;
                         if (num == 0)
                         {
                             num = 60;
@@ -95,26 +114,26 @@ namespace WireShark
                     }
                     if (Main.tile[_mechX[i], _mechY[i]].IsActive && Main.tile[_mechX[i], _mechY[i]].type == 411)
                     {
-                        Tile tile = Main.tile[_mechX[i], _mechY[i]];
-                        int num2 = tile.frameX % 36 / 18;
-                        int num3 = tile.frameY % 36 / 18;
-                        int num4 = _mechX[i] - num2;
-                        int num5 = _mechY[i] - num3;
-                        int num6 = 36;
+                        var tile = Main.tile[_mechX[i], _mechY[i]];
+                        var num2 = tile.frameX % 36 / 18;
+                        var num3 = tile.frameY % 36 / 18;
+                        var num4 = _mechX[i] - num2;
+                        var num5 = _mechY[i] - num3;
+                        var num6 = 36;
                         if (Main.tile[num4, num5].frameX >= 36)
                         {
                             num6 = -36;
                         }
-                        for (int j = num4; j < num4 + 2; j++)
+                        for (var j = num4; j < num4 + 2; j++)
                         {
-                            for (int k = num5; k < num5 + 2; k++)
+                            for (var k = num5; k < num5 + 2; k++)
                             {
                                 Main.tile[j, k].frameX = (short)(Main.tile[j, k].frameX + num6);
                             }
                         }
 
                     }
-                    for (int l = i; l < _numMechs; l++)
+                    for (var l = i; l < _numMechs; l++)
                     {
                         _mechX[l] = _mechX[l + 1];
                         _mechY[l] = _mechY[l + 1];
@@ -181,8 +200,8 @@ namespace WireShark
             }
             if (Main.tile[i, j].type == 441 || Main.tile[i, j].type == 468)
             {
-                int num = Main.tile[i, j].frameX / 18 * -1;
-                int num2 = Main.tile[i, j].frameY / 18 * -1;
+                var num = Main.tile[i, j].frameX / 18 * -1;
+                var num2 = Main.tile[i, j].frameY / 18 * -1;
                 num %= 4;
                 if (num < -1)
                 {
@@ -197,8 +216,8 @@ namespace WireShark
             if (Main.tile[i, j].type == 132 || Main.tile[i, j].type == 411)
             {
                 short num3 = 36;
-                int num4 = Main.tile[i, j].frameX / 18 * -1;
-                int num5 = Main.tile[i, j].frameY / 18 * -1;
+                var num4 = Main.tile[i, j].frameX / 18 * -1;
+                var num5 = Main.tile[i, j].frameY / 18 * -1;
                 num4 %= 4;
                 if (num4 < -1)
                 {
@@ -211,13 +230,13 @@ namespace WireShark
                 {
                     CheckMech(num4, num5, 60);
                 }
-                for (int k = num4; k < num4 + 2; k++)
+                for (var k = num4; k < num4 + 2; k++)
                 {
-                    for (int l = num5; l < num5 + 2; l++)
+                    for (var l = num5; l < num5 + 2; l++)
                     {
                         if (Main.tile[k, l].type == 132 || Main.tile[k, l].type == 411)
                         {
-                            Tile tile = Main.tile[k, l];
+                            var tile = Main.tile[k, l];
                             tile.frameX += num3;
                         }
                     }
@@ -242,7 +261,7 @@ namespace WireShark
         // Token: 0x0600075A RID: 1882 RVA: 0x003559C0 File Offset: 0x00353BC0
         public static bool Actuate(int i, int j)
         {
-            Tile tile = Main.tile[i, j];
+            var tile = Main.tile[i, j];
             if (!tile.HasActuator)
             {
                 return false;
@@ -264,7 +283,7 @@ namespace WireShark
         // Token: 0x0600075B RID: 1883 RVA: 0x00355A44 File Offset: 0x00353C44
         public static void ActuateForced(int i, int j)
         {
-            Tile tile = Main.tile[i, j];
+            var tile = Main.tile[i, j];
             if (tile.type == 226 && j > Main.worldSurface && !NPC.downedPlantBoss)
             {
                 return;
@@ -280,7 +299,7 @@ namespace WireShark
         // Token: 0x0600075D RID: 1885 RVA: 0x00355BB8 File Offset: 0x00353DB8
         public static bool CheckMech(int i, int j, int time)
         {
-            for (int k = 0; k < _numMechs; k++)
+            for (var k = 0; k < _numMechs; k++)
             {
                 if (_mechX[k] == i && _mechY[k] == j)
                 {
@@ -301,24 +320,24 @@ namespace WireShark
         // Token: 0x0600075E RID: 1886 RVA: 0x00355C2C File Offset: 0x00353E2C
         private static void XferWater()
         {
-            for (int i = 0; i < _numInPump; i++)
+            for (var i = 0; i < _numInPump; i++)
             {
-                int num = _inPumpX[i];
-                int num2 = _inPumpY[i];
-                int liquid = Main.tile[num, num2].LiquidType;
+                var num = _inPumpX[i];
+                var num2 = _inPumpY[i];
+                var liquid = Main.tile[num, num2].LiquidType;
                 if (liquid > 0)
                 {
-                    bool flag = (Main.tile[num, num2].LiquidType == LiquidID.Lava);
-                    bool flag2 = (Main.tile[num, num2].LiquidType == LiquidID.Honey);
-                    for (int j = 0; j < _numOutPump; j++)
+                    var flag = (Main.tile[num, num2].LiquidType == LiquidID.Lava);
+                    var flag2 = (Main.tile[num, num2].LiquidType == LiquidID.Honey);
+                    for (var j = 0; j < _numOutPump; j++)
                     {
-                        int num3 = _outPumpX[j];
-                        int num4 = _outPumpY[j];
-                        int liquid2 = Main.tile[num3, num4].LiquidType;
+                        var num3 = _outPumpX[j];
+                        var num4 = _outPumpY[j];
+                        var liquid2 = Main.tile[num3, num4].LiquidType;
                         if (liquid2 < 255)
                         {
-                            bool flag3 = (Main.tile[num3, num4].LiquidType == LiquidID.Lava);
-                            bool flag4 = (Main.tile[num3, num4].LiquidType == LiquidID.Honey);
+                            var flag3 = (Main.tile[num3, num4].LiquidType == LiquidID.Lava);
+                            var flag4 = (Main.tile[num3, num4].LiquidType == LiquidID.Honey);
                             if (liquid2 == 0)
                             {
                                 flag3 = flag;
@@ -326,14 +345,14 @@ namespace WireShark
                             }
                             if (flag == flag3 && flag2 == flag4)
                             {
-                                int num5 = liquid;
+                                var num5 = liquid;
                                 if (num5 + liquid2 > 255)
                                 {
                                     num5 = 255 - liquid2;
                                 }
-                                Tile tile = Main.tile[num3, num4];
+                                var tile = Main.tile[num3, num4];
                                 tile.LiquidType += (byte)num5;
-                                Tile tile2 = Main.tile[num, num2];
+                                var tile2 = Main.tile[num, num2];
                                 tile2.LiquidType -= (byte)num5;
                                 liquid = Main.tile[num, num2].LiquidType;
                                 if (flag)
@@ -404,20 +423,20 @@ namespace WireShark
             {
                 _wireDirectionList.Clear(true);
             }
-            Vector2[] array = new Vector2[8];
-            int num = 0;
+            var array = new Vector2[8];
+            var num = 0;
 
 
             _teleport[0].X = -1f;
             _teleport[0].Y = -1f;
             _teleport[1].X = -1f;
             _teleport[1].Y = -1f;
-            for (int m = left; m < left + width; m++)
+            for (var m = left; m < left + width; m++)
             {
-                for (int n = top; n < top + height; n++)
+                for (var n = top; n < top + height; n++)
                 {
-                    Point16 back3 = new Point16(m, n);
-                    Tile tile3 = Main.tile[m, n];
+                    var back3 = new Point16(m, n);
+                    var tile3 = Main.tile[m, n];
                     if (tile3 != null && tile3.RedWire)
                     {
                         _wireList.PushBack(back3);
@@ -439,12 +458,12 @@ namespace WireShark
 
 
 
-            for (int i = left; i < left + width; i++)
+            for (var i = left; i < left + width; i++)
             {
-                for (int j = top; j < top + height; j++)
+                for (var j = top; j < top + height; j++)
                 {
-                    Point16 back = new Point16(i, j);
-                    Tile tile = Main.tile[i, j];
+                    var back = new Point16(i, j);
+                    var tile = Main.tile[i, j];
                     if (tile != null && tile.BlueWire)
                     {
                         _wireList.PushBack(back);
@@ -469,12 +488,12 @@ namespace WireShark
             array[num++] = _teleport[1];
 
 
-            for (int k = left; k < left + width; k++)
+            for (var k = left; k < left + width; k++)
             {
-                for (int l = top; l < top + height; l++)
+                for (var l = top; l < top + height; l++)
                 {
-                    Point16 back2 = new Point16(k, l);
-                    Tile tile2 = Main.tile[k, l];
+                    var back2 = new Point16(k, l);
+                    var tile2 = Main.tile[k, l];
                     if (tile2 != null && tile2.GreenWire)
                     {
                         _wireList.PushBack(back2);
@@ -502,12 +521,12 @@ namespace WireShark
             _teleport[0].Y = -1f;
             _teleport[1].X = -1f;
             _teleport[1].Y = -1f;
-            for (int num2 = left; num2 < left + width; num2++)
+            for (var num2 = left; num2 < left + width; num2++)
             {
-                for (int num3 = top; num3 < top + height; num3++)
+                for (var num3 = top; num3 < top + height; num3++)
                 {
-                    Point16 back4 = new Point16(num2, num3);
-                    Tile tile4 = Main.tile[num2, num3];
+                    var back4 = new Point16(num2, num3);
+                    var tile4 = Main.tile[num2, num3];
                     if (tile4 != null && tile4.YellowWire)
                     {
                         _wireList.PushBack(back4);
@@ -528,7 +547,7 @@ namespace WireShark
             array[num++] = _teleport[1];
 
 
-            for (int num4 = 0; num4 < 8; num4 += 2)
+            for (var num4 = 0; num4 < 8; num4 += 2)
             {
                 _teleport[0] = array[num4];
                 _teleport[1] = array[num4 + 1];
@@ -585,7 +604,7 @@ namespace WireShark
                         Utils.Swap<Queue<Point16>>(ref _GatesCurrent, ref _GatesNext);
                         while (_GatesCurrent.Count > 0)
                         {
-                            Point16 key = _GatesCurrent.Peek();
+                            var key = _GatesCurrent.Peek();
                             if (_GatesDone[key.X, key.Y] == cur_gatesdone)
                             {
                                 _GatesCurrent.Dequeue();
@@ -625,7 +644,7 @@ namespace WireShark
                         Utils.Swap<Queue<Point16>>(ref _GatesCurrent, ref _GatesNext);
                         while (_GatesCurrent.Count > 0)
                         {
-                            Point16 key = _GatesCurrent.Peek();
+                            var key = _GatesCurrent.Peek();
                             if (_GatesDone[key.X, key.Y] == cur_gatesdone)
                             {
                                 _GatesCurrent.Dequeue();
@@ -740,14 +759,14 @@ namespace WireShark
         private static void CacheLogicGate(int x, int y)
         {
             LogicGate lgate;
-            Tile tile = Main.tile[x, y];
-            List<Tile> lamps = new List<Tile>(); // lamps before one error gate
-            List<Tile> lampTriggers = new List<Tile>(); // all lamps
-            bool countend = false;
-            int onnum = 0;
-            for (int j = y - 1; j > 0; --j)
+            var tile = Main.tile[x, y];
+            var lamps = new List<Tile>(); // lamps before one error gate
+            var lampTriggers = new List<Tile>(); // all lamps
+            var countend = false;
+            var onnum = 0;
+            for (var j = y - 1; j > 0; --j)
             {
-                Tile tile2 = Main.tile[x, j];
+                var tile2 = Main.tile[x, j];
                 if (!tile2.IsActive || tile2.type != TileID.LogicGateLamp)
                     break;
                 lampTriggers.Add(tile2);
@@ -789,7 +808,7 @@ namespace WireShark
             lgate.y = y;
             lgate.active = tile.frameX == 18;
 
-            for (int i = 0; i < lampTriggers.Count; ++i)
+            for (var i = 0; i < lampTriggers.Count; ++i)
             {
                 if (i < lamps.Count || lampTriggers[i].frameX == 36)
                     onLogicLampChange[x, y - i - 1] = lgate;
@@ -799,8 +818,8 @@ namespace WireShark
         public static void Initialize_LogicLamps()
         {
             onLogicLampChange = new LogicGate[Main.maxTilesX, Main.maxTilesY];
-            for (int i = 0; i < Main.maxTilesX; ++i)
-            for (int j = 0; j < Main.maxTilesY; ++j)
+            for (var i = 0; i < Main.maxTilesX; ++i)
+            for (var j = 0; j < Main.maxTilesY; ++j)
                 if (Main.tile[i, j].IsActive && Main.tile[i, j].type == TileID.LogicGate)
                     CacheLogicGate(i, j);
         }
@@ -809,9 +828,9 @@ namespace WireShark
         {
             _wireDirectionList.Clear(true);
             _wireAccelerator.ResetVisited();
-            for (int i = 0; i < next.Count; i++)
+            for (var i = 0; i < next.Count; i++)
             {
-                Point16 point = next.PopFront();
+                var point = next.PopFront();
                 _wireAccelerator.Activiate(point.X, point.Y, wireType - 1);
             }
 
@@ -826,7 +845,7 @@ namespace WireShark
             {
                 return;
             }
-            Rectangle[] array = new Rectangle[2];
+            var array = new Rectangle[2];
             array[0].X = (int)(_teleport[0].X * 16f);
             array[0].Width = 48;
             array[0].Height = 48;
@@ -835,20 +854,20 @@ namespace WireShark
             array[1].Width = 48;
             array[1].Height = 48;
             array[1].Y = (int)(_teleport[1].Y * 16f - array[1].Height);
-            for (int i = 0; i < 2; i++)
+            for (var i = 0; i < 2; i++)
             {
-                Vector2 value = new Vector2(array[1].X - array[0].X, array[1].Y - array[0].Y);
+                var value = new Vector2(array[1].X - array[0].X, array[1].Y - array[0].Y);
                 if (i == 1)
                 {
                     value = new Vector2(array[0].X - array[1].X, array[0].Y - array[1].Y);
                 }
                 if (!Wiring.blockPlayerTeleportationForOneIteration)
                 {
-                    for (int j = 0; j < 255; j++)
+                    for (var j = 0; j < 255; j++)
                     {
                         if (Main.player[j].active && !Main.player[j].dead && !Main.player[j].teleporting && array[i].Intersects(Main.player[j].getRect()))
                         {
-                            Vector2 vector = Main.player[j].position + value;
+                            var vector = Main.player[j].position + value;
                             Main.player[j].teleporting = true;
                             if (Main.netMode == NetmodeID.Server)
                             {
@@ -862,11 +881,11 @@ namespace WireShark
                         }
                     }
                 }
-                for (int k = 0; k < 200; k++)
+                for (var k = 0; k < 200; k++)
                 {
                     if (Main.npc[k].active && !Main.npc[k].teleporting && Main.npc[k].lifeMax > 5 && !Main.npc[k].boss && !Main.npc[k].noTileCollide)
                     {
-                        int type = Main.npc[k].type;
+                        var type = Main.npc[k].type;
                         if (!NPCID.Sets.TeleportationImmune[type] && array[i].Intersects(Main.npc[k].getRect()))
                         {
                             Main.npc[k].teleporting = true;
@@ -875,11 +894,11 @@ namespace WireShark
                     }
                 }
             }
-            for (int l = 0; l < 255; l++)
+            for (var l = 0; l < 255; l++)
             {
                 Main.player[l].teleporting = false;
             }
-            for (int m = 0; m < 200; m++)
+            for (var m = 0; m < 200; m++)
             {
                 Main.npc[m].teleporting = false;
             }
@@ -892,8 +911,8 @@ namespace WireShark
             {
                 return;
             }
-            bool flag = Main.tileSolid[Main.tile[i, j].type] && !TileID.Sets.NotReallySolid[Main.tile[i, j].type];
-            ushort type = Main.tile[i, j].type;
+            var flag = Main.tileSolid[Main.tile[i, j].type] && !TileID.Sets.NotReallySolid[Main.tile[i, j].type];
+            var type = Main.tile[i, j].type;
             if (type == 314 || (uint)(type - 386) <= 3u)
             {
                 flag = false;

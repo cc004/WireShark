@@ -49,15 +49,23 @@ namespace WireShark
 
         public static TileInfo CreateTileInfo(int x, int y)
         {
-            if (!tileinfo.TryGetValue(Main.tile[x, y].type, out var t)) return null;
-            var result = Activator.CreateInstance(t) as TileInfo;
+            TileInfo result = null;
+            var mtile = ModContent.GetModTile(Main.tile[x, y].type);
+            if (mtile != null)
+            {
+                result = new ModTileInfo(mtile);
+            }
+            else if (tileinfo.TryGetValue(Main.tile[x, y].type, out var t))
+            {
+                result = Activator.CreateInstance(t) as TileInfo;
+            }
+            else return null;
+
+            result.tile = Main.tile[x, y];
             result.i = x;
             result.j = y;
-            result.tile = Main.tile[x, y];
             result.type = result.tile.type;
             return result;
-
-
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,7 +87,6 @@ namespace WireShark
         {
             WiringWrapper.HitSwitch(i, j);
             WorldGen.SquareTileFrame(i, j, true);
-            return;
         }
     }
 
@@ -94,8 +101,6 @@ namespace WireShark
                     WorldGen.SquareTileFrame(i, j, true);
 
                 }
-
-                return;
             }
         }
     }
@@ -109,8 +114,6 @@ namespace WireShark
                 tile.type = 421;
                 WorldGen.SquareTileFrame(i, j, true);
             }
-
-            return;
         }
     }
 
@@ -187,21 +190,17 @@ namespace WireShark
             {
                 if (type >= 262)
                 {
-                    Tile tile2 = tile;
+                    var tile2 = tile;
                     tile2.type -= 7;
                 }
                 else
                 {
-                    Tile tile3 = tile;
+                    var tile3 = tile;
                     tile3.type += 7;
                 }
 
                 WorldGen.SquareTileFrame(i, j, true);
-
-                return;
             }
-
-            return;
         }
     }
 
@@ -210,7 +209,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                LogicGate lgate = WiringWrapper.onLogicLampChange[i, j];
+                var lgate = WiringWrapper.onLogicLampChange[i, j];
                 switch (tile.frameX)
                 {
                     case 0:
@@ -244,8 +243,6 @@ namespace WireShark
                         break;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -255,25 +252,23 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num2 = tile.frameX % 54 / 18;
-                int num3 = tile.frameY % 54 / 18;
-                int num4 = i - num2;
-                int num5 = j - num3;
-                int num6 = 54;
+                var num2 = tile.frameX % 54 / 18;
+                var num3 = tile.frameY % 54 / 18;
+                var num4 = i - num2;
+                var num5 = j - num3;
+                var num6 = 54;
                 if (Main.tile[num4, num5].frameY >= 108)
                 {
                     num6 = -108;
                 }
 
-                for (int k = num4; k < num4 + 3; k++)
+                for (var k = num4; k < num4 + 3; k++)
                 {
-                    for (int l = num5; l < num5 + 3; l++)
+                    for (var l = num5; l < num5 + 3; l++)
                     {
                         Main.tile[k, l].frameY = (short) (Main.tile[k, l].frameY + num6);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -283,25 +278,23 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num7 = tile.frameX % 54 / 18;
-                int num8 = tile.frameY % 54 / 18;
-                int num9 = i - num7;
-                int num10 = j - num8;
-                int num11 = 54;
+                var num7 = tile.frameX % 54 / 18;
+                var num8 = tile.frameY % 54 / 18;
+                var num9 = i - num7;
+                var num10 = j - num8;
+                var num11 = 54;
                 if (Main.tile[num9, num10].frameX >= 54)
                 {
                     num11 = -54;
                 }
 
-                for (int m = num9; m < num9 + 3; m++)
+                for (var m = num9; m < num9 + 3; m++)
                 {
-                    for (int n = num10; n < num10 + 3; n++)
+                    for (var n = num10; n < num10 + 3; n++)
                     {
                         Main.tile[m, n].frameX = (short) (Main.tile[m, n].frameX + num11);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -311,25 +304,23 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num12 = tile.frameX % 36 / 18;
-                int num13 = tile.frameY % 36 / 18;
-                int num14 = i - num12;
-                int num15 = j - num13;
-                int num16 = 36;
+                var num12 = tile.frameX % 36 / 18;
+                var num13 = tile.frameY % 36 / 18;
+                var num14 = i - num12;
+                var num15 = j - num13;
+                var num16 = 36;
                 if (Main.tile[num14, num15].frameX >= 36)
                 {
                     num16 = -36;
                 }
 
-                for (int num17 = num14; num17 < num14 + 2; num17++)
+                for (var num17 = num14; num17 < num14 + 2; num17++)
                 {
-                    for (int num18 = num15; num18 < num15 + 2; num18++)
+                    for (var num18 = num15; num18 < num15 + 2; num18++)
                     {
                         Main.tile[num17, num18].frameX = (short) (Main.tile[num17, num18].frameX + num16);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -339,21 +330,21 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num19 = tile.frameX % 36 / 18;
-                int num20 = tile.frameY % 36 / 18;
-                int num21 = i - num19;
-                int num22 = j - num20;
-                for (int num23 = num21; num23 < num21 + 2; num23++)
+                var num19 = tile.frameX % 36 / 18;
+                var num20 = tile.frameY % 36 / 18;
+                var num21 = i - num19;
+                var num22 = j - num20;
+                for (var num23 = num21; num23 < num21 + 2; num23++)
                 {
-                    for (int num24 = num22; num24 < num22 + 2; num24++)
+                    for (var num24 = num22; num24 < num22 + 2; num24++)
                     {
                     }
                 }
 
                 if (!Main.AnnouncementBoxDisabled)
                 {
-                    Color pink = Color.Pink;
-                    int num25 = Sign.ReadSign(num21, num22, false);
+                    var pink = Color.Pink;
+                    var num25 = Sign.ReadSign(num21, num22, false);
                     if (num25 != -1 && Main.sign[num25] != null &&
                         !string.IsNullOrWhiteSpace(Main.sign[num25].text))
                     {
@@ -367,7 +358,6 @@ namespace WireShark
 
                             if (Main.netMode == NetmodeID.Server)
                             {
-                                return;
                             }
                         }
                         else if (Main.netMode == NetmodeID.SinglePlayer)
@@ -377,12 +367,11 @@ namespace WireShark
                                 Main.AnnouncementBoxRange)
                             {
                                 Main.NewTextMultiline(Main.sign[num25].text, false, pink, 460);
-                                return;
                             }
                         }
                         else if (Main.netMode == NetmodeID.Server)
                         {
-                            for (int num26 = 0; num26 < 255; num26++)
+                            for (var num26 = 0; num26 < 255; num26++)
                             {
                                 if (Main.player[num26].active &&
                                     Main.player[num26]
@@ -391,13 +380,9 @@ namespace WireShark
                                 {
                                 }
                             }
-
-                            return;
                         }
                     }
                 }
-
-                return;
             }
         }
     }
@@ -407,25 +392,23 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num27 = tile.frameX % 54 / 18;
-                int num28 = tile.frameY % 36 / 18;
-                int num29 = i - num27;
-                int num30 = j - num28;
-                int num31 = 54;
+                var num27 = tile.frameX % 54 / 18;
+                var num28 = tile.frameY % 36 / 18;
+                var num29 = i - num27;
+                var num30 = j - num28;
+                var num31 = 54;
                 if (Main.tile[num29, num30].frameX >= 54)
                 {
                     num31 = -54;
                 }
 
-                for (int num32 = num29; num32 < num29 + 3; num32++)
+                for (var num32 = num29; num32 < num29 + 3; num32++)
                 {
-                    for (int num33 = num30; num33 < num30 + 2; num33++)
+                    for (var num33 = num30; num33 < num30 + 2; num33++)
                     {
                         Main.tile[num32, num33].frameX = (short) (Main.tile[num32, num33].frameX + num31);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -435,19 +418,19 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num34 = tile.frameX % 72 / 18;
-                int num35 = tile.frameY % 54 / 18;
-                int num36 = i - num34;
-                int num37 = j - num35;
-                int num38 = tile.frameY / 54;
-                int num39 = tile.frameX / 72;
-                int num40 = -1;
+                var num34 = tile.frameX % 72 / 18;
+                var num35 = tile.frameY % 54 / 18;
+                var num36 = i - num34;
+                var num37 = j - num35;
+                var num38 = tile.frameY / 54;
+                var num39 = tile.frameX / 72;
+                var num40 = -1;
                 if (num34 == 1 || num34 == 2)
                 {
                     num40 = num35;
                 }
 
-                int num41 = 0;
+                var num41 = 0;
                 if (num34 == 3)
                 {
                     num41 = -54;
@@ -468,12 +451,12 @@ namespace WireShark
                     num41 = 0;
                 }
 
-                bool flag = false;
+                var flag = false;
                 if (num41 != 0)
                 {
-                    for (int num42 = num36; num42 < num36 + 4; num42++)
+                    for (var num42 = num36; num42 < num36 + 4; num42++)
                     {
-                        for (int num43 = num37; num43 < num37 + 3; num43++)
+                        for (var num43 = num37; num43 < num37 + 3; num43++)
                         {
                             Main.tile[num42, num43].frameY = (short) (Main.tile[num42, num43].frameY + num41);
                         }
@@ -485,9 +468,9 @@ namespace WireShark
                 if ((num39 == 3 || num39 == 4) && (num40 == 0 || num40 == 1))
                 {
                     num41 = ((num39 == 3) ? 72 : -72);
-                    for (int num44 = num36; num44 < num36 + 4; num44++)
+                    for (var num44 = num36; num44 < num36 + 4; num44++)
                     {
-                        for (int num45 = num37; num45 < num37 + 3; num45++)
+                        for (var num45 = num37; num45 < num37 + 3; num45++)
                         {
                             Main.tile[num44, num45].frameX = (short) (Main.tile[num44, num45].frameX + num41);
                         }
@@ -502,20 +485,13 @@ namespace WireShark
 
                 if (num40 != -1)
                 {
-                    bool flag2 = true;
-                    if ((num39 == 3 || num39 == 4) && num40 < 2)
-                    {
-                        flag2 = false;
-                    }
+                    bool flag2 = !((num39 == 3 || num39 == 4) && num40 < 2);
 
                     if (WiringWrapper.CheckMech(num36, num37, 30) && flag2)
                     {
                         WorldGen.ShootFromCannon(num36, num37, num38, num39 + 1, 0, 0f, CurrentUser, true);
-                        return;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -525,18 +501,18 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num46 = tile.frameX % 54 / 18;
-                int num47 = tile.frameY % 54 / 18;
-                int num48 = i - num46;
-                int num49 = j - num47;
-                short num148 = (short) (tile.frameX / 54);
-                int num50 = -1;
+                var num46 = tile.frameX % 54 / 18;
+                var num47 = tile.frameY % 54 / 18;
+                var num48 = i - num46;
+                var num49 = j - num47;
+                var num148 = (short) (tile.frameX / 54);
+                var num50 = -1;
                 if (num46 == 1)
                 {
                     num50 = num47;
                 }
 
-                int num51 = 0;
+                var num51 = 0;
                 if (num46 == 0)
                 {
                     num51 = -54;
@@ -557,12 +533,12 @@ namespace WireShark
                     num51 = 0;
                 }
 
-                bool flag3 = false;
+                var flag3 = false;
                 if (num51 != 0)
                 {
-                    for (int num52 = num48; num52 < num48 + 3; num52++)
+                    for (var num52 = num48; num52 < num48 + 3; num52++)
                     {
-                        for (int num53 = num49; num53 < num49 + 3; num53++)
+                        for (var num53 = num49; num53 < num49 + 3; num53++)
                         {
                             Main.tile[num52, num53].frameX = (short) (Main.tile[num52, num53].frameX + num51);
                         }
@@ -577,13 +553,13 @@ namespace WireShark
 
                 if (num50 != -1 && CheckMech(num48, num49, 10))
                 {
-                    float num149 = 12f + Main.rand.Next(450) * 0.01f;
+                    var num149 = 12f + Main.rand.Next(450) * 0.01f;
                     float num54 = Main.rand.Next(85, 105);
                     float num150 = Main.rand.Next(-35, 11);
-                    int type2 = 166;
-                    int damage = 0;
-                    float knockBack = 0f;
-                    Vector2 vector = new Vector2((num48 + 2) * 16 - 8, (num49 + 2) * 16 - 8);
+                    var type2 = 166;
+                    var damage = 0;
+                    var knockBack = 0f;
+                    var vector = new Vector2((num48 + 2) * 16 - 8, (num49 + 2) * 16 - 8);
                     if (tile.frameX / 54 == 0)
                     {
                         num54 *= -1f;
@@ -594,17 +570,14 @@ namespace WireShark
                         vector.X += 12f;
                     }
 
-                    float num55 = num54;
-                    float num56 = num150;
-                    float num57 = (float) Math.Sqrt(num55 * num55 + num56 * num56);
+                    var num55 = num54;
+                    var num56 = num150;
+                    var num57 = (float) Math.Sqrt(num55 * num55 + num56 * num56);
                     num57 = num149 / num57;
                     num55 *= num57;
                     num56 *= num57;
                     Projectile.NewProjectile(null, vector.X, vector.Y, num55, num56, type2, damage, knockBack, CurrentUser, 0f, 0f);
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -614,25 +587,23 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num58 = tile.frameX % 54 / 18;
-                int num59 = tile.frameY % 36 / 18;
-                int num60 = i - num58;
-                int num61 = j - num59;
-                int num62 = 36;
+                var num58 = tile.frameX % 54 / 18;
+                var num59 = tile.frameY % 36 / 18;
+                var num60 = i - num58;
+                var num61 = j - num59;
+                var num62 = 36;
                 if (Main.tile[num60, num61].frameY >= 36)
                 {
                     num62 = -36;
                 }
 
-                for (int num63 = num60; num63 < num60 + 3; num63++)
+                for (var num63 = num60; num63 < num60 + 3; num63++)
                 {
-                    for (int num64 = num61; num64 < num61 + 2; num64++)
+                    for (var num64 = num61; num64 < num61 + 2; num64++)
                     {
                         Main.tile[num63, num64].frameY = (short) (Main.tile[num63, num64].frameY + num62);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -658,8 +629,6 @@ namespace WireShark
 
                 tile.type = 131;
                 WorldGen.SquareTileFrame(i, j, true);
-
-                return;
             }
         }
     }
@@ -671,8 +640,6 @@ namespace WireShark
 
             tile.type = 130;
             WorldGen.SquareTileFrame(i, j, true);
-
-            return;
         }
     }
 
@@ -686,8 +653,8 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                bool value = type == 387;
-                int num65 = WorldGen.ShiftTrapdoor(i, j, true, -1).ToInt();
+                var value = type == 387;
+                var num65 = WorldGen.ShiftTrapdoor(i, j, true, -1).ToInt();
                 if (num65 == 0)
                 {
                     num65 = -WorldGen.ShiftTrapdoor(i, j, false, -1).ToInt();
@@ -695,10 +662,7 @@ namespace WireShark
 
                 if (num65 != 0)
                 {
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -708,8 +672,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             WorldGen.LaunchRocket(i, j, true);
-
-            return;
         }
     }
 
@@ -718,17 +680,14 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num67 = j - tile.frameY / 18;
-                int num68 = i - tile.frameX / 18;
+                var num67 = j - tile.frameY / 18;
+                var num68 = i - tile.frameX / 18;
 
 
                 if (CheckMech(num68, num67, 30))
                 {
                     WorldGen.LaunchRocketSmall(num68, num67, true);
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -738,14 +697,14 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num69 = j - tile.frameY / 18;
-                int num70 = i - tile.frameX / 18;
+                var num69 = j - tile.frameY / 18;
+                var num70 = i - tile.frameX / 18;
 
 
                 if (CheckMech(num70, num69, 30))
                 {
-                    bool flag5 = false;
-                    for (int num71 = 0; num71 < 1000; num71++)
+                    var flag5 = false;
+                    for (var num71 = 0; num71 < 1000; num71++)
                     {
                         if (Main.projectile[num71].active && Main.projectile[num71].aiStyle == 73 &&
                             Main.projectile[num71].ai[0] == num70 && Main.projectile[num71].ai[1] == num69)
@@ -759,11 +718,8 @@ namespace WireShark
                     {
                         Projectile.NewProjectile(null, num70 * 16 + 8, num69 * 16 + 2, 0f, 0f,
                             419 + Main.rand.Next(4), 0, 0f, Main.myPlayer, num70, num69);
-                        return;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -773,7 +729,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num72 = i - tile.frameX / 18;
+                var num72 = i - tile.frameX / 18;
                 if (tile.wall == 87 && j > Main.worldSurface && !NPC.downedPlantBoss)
                 {
                     return;
@@ -785,10 +741,9 @@ namespace WireShark
                     _teleport[0].Y = j;
                     if (tile.IsHalfBlock)
                     {
-                        Vector2[] expr_EFC_cp_0 = _teleport;
-                        int expr_EFC_cp_ = 0;
+                        var expr_EFC_cp_0 = _teleport;
+                        var expr_EFC_cp_ = 0;
                         expr_EFC_cp_0[expr_EFC_cp_].Y = expr_EFC_cp_0[expr_EFC_cp_].Y + 0.5f;
-                        return;
                     }
                 }
                 else if (_teleport[0].X != num72 || _teleport[0].Y != j)
@@ -797,14 +752,11 @@ namespace WireShark
                     _teleport[1].Y = j;
                     if (tile.IsHalfBlock)
                     {
-                        Vector2[] expr_F75_cp_0 = _teleport;
-                        int expr_F75_cp_ = 1;
+                        var expr_F75_cp_0 = _teleport;
+                        var expr_F75_cp_ = 1;
                         expr_F75_cp_0[expr_F75_cp_].Y = expr_F75_cp_0[expr_F75_cp_].Y + 0.5f;
-                        return;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -814,12 +766,12 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                short num151 = (short) (Main.tile[i, j].frameX / 18);
-                bool flag6 = num151 % 2 >= 1;
-                bool flag7 = num151 % 4 >= 2;
-                bool flag8 = num151 % 8 >= 4;
-                bool flag9 = num151 % 16 >= 8;
-                bool flag10 = false;
+                var num151 = (short) (Main.tile[i, j].frameX / 18);
+                var flag6 = num151 % 2 >= 1;
+                var flag7 = num151 % 4 >= 2;
+                var flag8 = num151 % 8 >= 4;
+                var flag9 = num151 % 16 >= 8;
+                var flag10 = false;
                 short num73 = 0;
                 switch (_currentWireColor)
                 {
@@ -843,16 +795,14 @@ namespace WireShark
 
                 if (flag10)
                 {
-                    Tile tile6 = tile;
+                    var tile6 = tile;
                     tile6.frameX += num73;
                 }
                 else
                 {
-                    Tile tile7 = tile;
+                    var tile7 = tile;
                     tile7.frameX -= num73;
                 }
-
-                return;
             }
         }
     }
@@ -864,16 +814,14 @@ namespace WireShark
             {
                 if (tile.frameX < 54)
                 {
-                    Tile tile8 = tile;
+                    var tile8 = tile;
                     tile8.frameX += 54;
                 }
                 else
                 {
-                    Tile tile9 = tile;
+                    var tile9 = tile;
                     tile9.frameX -= 54;
                 }
-
-                return;
             }
         }
     }
@@ -893,23 +841,21 @@ namespace WireShark
                 {
                 }
 
-                int num76 = i - num74;
-                int num77 = j - num75;
-                int num78 = 54;
+                var num76 = i - num74;
+                var num77 = j - num75;
+                var num78 = 54;
                 if (Main.tile[num76, num77].frameX >= 54)
                 {
                     num78 = -54;
                 }
 
-                for (int num79 = num76; num79 < num76 + 3; num79++)
+                for (var num79 = num76; num79 < num76 + 3; num79++)
                 {
-                    for (int num80 = num77; num80 < num77 + 2; num80++)
+                    for (var num80 = num77; num80 < num77 + 2; num80++)
                     {
                         Main.tile[num79, num80].frameX = (short) (Main.tile[num79, num80].frameX + num78);
                     }
                 }
-
-                return;
             }
         }
     }
@@ -924,20 +870,17 @@ namespace WireShark
                 {
                 }
 
-                int num82 = j - num81;
+                var num82 = j - num81;
                 short num83 = 18;
                 if (tile.frameX > 0)
                 {
                     num83 = -18;
                 }
 
-                Tile tile10 = Main.tile[i, num82];
+                var tile10 = Main.tile[i, num82];
                 tile10.frameX += num83;
-                Tile tile11 = Main.tile[i, num82 + 1];
+                var tile11 = Main.tile[i, num82 + 1];
                 tile11.frameX += num83;
-
-
-                return;
             }
         }
     }
@@ -959,15 +902,12 @@ namespace WireShark
                     num85 = -18;
                 }
 
-                Tile tile12 = Main.tile[i, num84];
+                var tile12 = Main.tile[i, num84];
                 tile12.frameX += num85;
-                Tile tile13 = Main.tile[i, num84 + 1];
+                var tile13 = Main.tile[i, num84 + 1];
                 tile13.frameX += num85;
-                Tile tile14 = Main.tile[i, num84 + 2];
+                var tile14 = Main.tile[i, num84 + 2];
                 tile14.frameX += num85;
-
-
-                return;
             }
         }
     }
@@ -998,7 +938,7 @@ namespace WireShark
                 }
 
                 num86 = j - num86;
-                int num87 = tile.frameX / 18;
+                var num87 = tile.frameX / 18;
                 if (num87 > 1)
                 {
                     num87 -= 2;
@@ -1011,17 +951,14 @@ namespace WireShark
                     num88 = -36;
                 }
 
-                Tile tile15 = Main.tile[num87, num86];
+                var tile15 = Main.tile[num87, num86];
                 tile15.frameX += num88;
-                Tile tile16 = Main.tile[num87, num86 + 1];
+                var tile16 = Main.tile[num87, num86 + 1];
                 tile16.frameX += num88;
-                Tile tile17 = Main.tile[num87 + 1, num86];
+                var tile17 = Main.tile[num87 + 1, num86];
                 tile17.frameX += num88;
-                Tile tile18 = Main.tile[num87 + 1, num86 + 1];
+                var tile18 = Main.tile[num87 + 1, num86 + 1];
                 tile18.frameX += num88;
-
-
-                return;
             }
         }
     }
@@ -1036,8 +973,8 @@ namespace WireShark
                 {
                 }
 
-                int num90 = j - num89;
-                int num91 = tile.frameX % 108 / 18;
+                var num90 = j - num89;
+                var num91 = tile.frameX % 108 / 18;
                 if (num91 > 2)
                 {
                     num91 -= 3;
@@ -1050,16 +987,14 @@ namespace WireShark
                     num92 = -54;
                 }
 
-                for (int num93 = num91; num93 < num91 + 3; num93++)
+                for (var num93 = num91; num93 < num91 + 3; num93++)
                 {
-                    for (int num94 = num90; num94 < num90 + 3; num94++)
+                    for (var num94 = num90; num94 < num90 + 3; num94++)
                     {
-                        Tile tile19 = Main.tile[num93, num94];
+                        var tile19 = Main.tile[num93, num94];
                         tile19.frameX += num92;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -1072,10 +1007,7 @@ namespace WireShark
                 if (CheckMech(i, j, 5))
                 {
                     Minecart.FlipSwitchTrack(i, j);
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -1089,10 +1021,8 @@ namespace WireShark
     {
         protected override void HitWireInternal()
         {
-            bool flag4 = type == 389;
+            var flag4 = type == 389;
             WorldGen.ShiftTallGate(i, j, flag4);
-
-            return;
         }
     }
 
@@ -1112,10 +1042,8 @@ namespace WireShark
                     num95 = -18;
                 }
 
-                Tile tile20 = tile;
+                var tile20 = tile;
                 tile20.frameX += num95;
-
-                return;
             }
         }
     }
@@ -1125,20 +1053,18 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num96 = j - tile.frameY / 18;
+                var num96 = j - tile.frameY / 18;
                 short num97 = 18;
                 if (tile.frameX > 0)
                 {
                     num97 = -18;
                 }
 
-                for (int num98 = num96; num98 < num96 + 6; num98++)
+                for (var num98 = num96; num98 < num96 + 6; num98++)
                 {
-                    Tile tile21 = Main.tile[i, num98];
+                    var tile21 = Main.tile[i, num98];
                     tile21.frameX += num97;
                 }
-
-                return;
             }
         }
     }
@@ -1148,12 +1074,12 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num99 = tile.frameY / 18;
-                Vector2 zero = Vector2.Zero;
-                float speedX = 0f;
-                float speedY = 0f;
-                int num100 = 0;
-                int damage2 = 0;
+                var num99 = tile.frameY / 18;
+                var zero = Vector2.Zero;
+                var speedX = 0f;
+                var speedY = 0f;
+                var num100 = 0;
+                var damage2 = 0;
                 switch (num99)
                 {
                     case 0:
@@ -1161,10 +1087,10 @@ namespace WireShark
                     case 2:
                         if (CheckMech(i, j, 200))
                         {
-                            int num101 = (tile.frameX == 0) ? -1 : ((tile.frameX == 18) ? 1 : 0);
-                            int num102 = (tile.frameX < 36) ? 0 : ((tile.frameX < 72) ? -1 : 1);
+                            var num101 = (tile.frameX == 0) ? -1 : ((tile.frameX == 18) ? 1 : 0);
+                            var num102 = (tile.frameX < 36) ? 0 : ((tile.frameX < 72) ? -1 : 1);
                             zero = new Vector2(i * 16 + 8 + 10 * num101, j * 16 + 9 + num102 * 9);
-                            float num103 = 3f;
+                            var num103 = 3f;
                             if (num99 == 0)
                             {
                                 num100 = 98;
@@ -1194,13 +1120,13 @@ namespace WireShark
                     case 3:
                         if (CheckMech(i, j, 300))
                         {
-                            int num104 = 200;
-                            for (int num105 = 0; num105 < 1000; num105++)
+                            var num104 = 200;
+                            for (var num105 = 0; num105 < 1000; num105++)
                             {
                                 if (Main.projectile[num105].active && Main.projectile[num105].type == num100)
                                 {
-                                    float num106 = (new Vector2(i * 16 + 8, j * 18 + 8) -
-                                                    Main.projectile[num105].Center).Length();
+                                    var num106 = (new Vector2(i * 16 + 8, j * 18 + 8) -
+                                                  Main.projectile[num105].Center).Length();
                                     if (num106 < 50f)
                                     {
                                         num104 -= 50;
@@ -1248,8 +1174,8 @@ namespace WireShark
                             {
                                 num100 = 185;
                                 damage2 = 40;
-                                int num107 = 0;
-                                int num108 = 0;
+                                var num107 = 0;
+                                var num108 = 0;
                                 switch (tile.frameX / 18)
                                 {
                                     case 0:
@@ -1283,8 +1209,8 @@ namespace WireShark
                     case 4:
                         if (CheckMech(i, j, 90))
                         {
-                            int num109 = 0;
-                            int num110 = 0;
+                            var num109 = 0;
+                            var num110 = 0;
                             switch (tile.frameX / 18)
                             {
                                 case 0:
@@ -1321,7 +1247,7 @@ namespace WireShark
                     case 0:
                         if (CheckMech(i, j, 200))
                         {
-                            int num111 = -1;
+                            var num111 = -1;
                             if (tile.frameX != 0)
                             {
                                 num111 = 1;
@@ -1339,7 +1265,7 @@ namespace WireShark
                     case 1:
                         if (CheckMech(i, j, 200))
                         {
-                            int num112 = -1;
+                            var num112 = -1;
                             if (tile.frameX != 0)
                             {
                                 num112 = 1;
@@ -1357,7 +1283,7 @@ namespace WireShark
                     case 2:
                         if (CheckMech(i, j, 200))
                         {
-                            int num113 = -1;
+                            var num113 = -1;
                             if (tile.frameX != 0)
                             {
                                 num113 = 1;
@@ -1376,13 +1302,13 @@ namespace WireShark
                         if (CheckMech(i, j, 300))
                         {
                             num100 = 185;
-                            int num114 = 200;
-                            for (int num115 = 0; num115 < 1000; num115++)
+                            var num114 = 200;
+                            for (var num115 = 0; num115 < 1000; num115++)
                             {
                                 if (Main.projectile[num115].active && Main.projectile[num115].type == num100)
                                 {
-                                    float num116 = (new Vector2(i * 16 + 8, j * 18 + 8) -
-                                                    Main.projectile[num115].Center).Length();
+                                    var num116 = (new Vector2(i * 16 + 8, j * 18 + 8) -
+                                                  Main.projectile[num115].Center).Length();
                                     if (num116 < 50f)
                                     {
                                         num114 -= 50;
@@ -1457,10 +1383,7 @@ namespace WireShark
                 {
                     Projectile.NewProjectile(null, (int) zero.X, (int) zero.Y, speedX, speedY, num100, damage2, 2f,
                         Main.myPlayer, 0f, 0f);
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -1470,14 +1393,14 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num117 = tile.frameX / 36;
-                int num118 = i - (tile.frameX - num117 * 36) / 18;
+                var num117 = tile.frameX / 36;
+                var num118 = i - (tile.frameX - num117 * 36) / 18;
                 if (CheckMech(num118, j, 200))
                 {
-                    Vector2 vector2 = Vector2.Zero;
-                    Vector2 zero2 = Vector2.Zero;
-                    int num119 = 654;
-                    int damage3 = 20;
+                    var vector2 = Vector2.Zero;
+                    var zero2 = Vector2.Zero;
+                    var num119 = 654;
+                    var damage3 = 20;
                     if (num117 < 2)
                     {
                         vector2 = new Vector2(num118 + 1, j) * 16f;
@@ -1493,11 +1416,8 @@ namespace WireShark
                     {
                         Projectile.NewProjectile(null, (int) vector2.X, (int) vector2.Y, zero2.X, zero2.Y, num119,
                             damage3, 2f, Main.myPlayer, 0f, 0f);
-                        return;
                     }
                 }
-
-                return;
             }
         }
     }
@@ -1507,7 +1427,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             WorldGen.SwitchFountain(i, j);
-            return;
         }
     }
 
@@ -1516,7 +1435,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             WorldGen.SwitchMonolith(i, j);
-            return;
         }
     }
 
@@ -1525,7 +1443,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             BirthdayParty.ToggleManualParty();
-            return;
         }
     }
 
@@ -1537,7 +1454,6 @@ namespace WireShark
 
             Projectile.NewProjectile(null, i * 16 + 8, j * 16 + 8, 0f, 0f, ProjectileID.Explosives, 500, 10f,
                 Main.myPlayer, 0f, 0f);
-            return;
         }
     }
 
@@ -1546,7 +1462,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             WorldGen.ExplodeMine(i, j, true);
-            return;
         }
     }
 
@@ -1560,8 +1475,8 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num120 = j - tile.frameY / 18;
-                int num121 = tile.frameX / 18;
+                var num120 = j - tile.frameY / 18;
+                var num121 = tile.frameX / 18;
                 if (num121 > 1)
                 {
                     num121 -= 2;
@@ -1572,7 +1487,7 @@ namespace WireShark
 
                 if (type == 142)
                 {
-                    for (int num122 = 0; num122 < 4; num122++)
+                    for (var num122 = 0; num122 < 4; num122++)
                     {
                         if (_numInPump >= 19)
                         {
@@ -1610,7 +1525,7 @@ namespace WireShark
                     return;
                 }
 
-                for (int num125 = 0; num125 < 4; num125++)
+                for (var num125 = 0; num125 < 4; num125++)
                 {
                     if (_numOutPump >= 19)
                     {
@@ -1644,8 +1559,6 @@ namespace WireShark
                     _outPumpY[_numOutPump] = num127;
                     _numOutPump++;
                 }
-
-                return;
             }
         }
     }
@@ -1655,9 +1568,9 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num128 = j - tile.frameY / 18;
-                int num129 = tile.frameX / 18;
-                int num130 = 0;
+                var num128 = j - tile.frameY / 18;
+                var num129 = tile.frameX / 18;
+                var num130 = 0;
                 while (num129 >= 2)
                 {
                     num129 -= 2;
@@ -1670,12 +1583,12 @@ namespace WireShark
                 num130 = tile.frameX / 36 + tile.frameY / 54 * 55;
 
 
-                int num131 = num129 * 16 + 16;
-                int num132 = (num128 + 3) * 16;
-                int num133 = -1;
-                int num134 = -1;
-                bool flag11 = true;
-                bool flag12 = false;
+                var num131 = num129 * 16 + 16;
+                var num132 = (num128 + 3) * 16;
+                var num133 = -1;
+                var num134 = -1;
+                var flag11 = true;
+                var flag12 = false;
                 switch (num130)
                 {
                     case 51:
@@ -1800,7 +1713,7 @@ namespace WireShark
                     }
                     else
                     {
-                        Vector2 position = new Vector2(num131 - 4, num132 - 22) - new Vector2(10f);
+                        var position = new Vector2(num131 - 4, num132 - 22) - new Vector2(10f);
                         Utils.PoofOfSmoke(position);
                     }
                 }
@@ -1898,11 +1811,11 @@ namespace WireShark
                         }
                         case 34:
                         {
-                            for (int num135 = 0; num135 < 2; num135++)
+                            for (var num135 = 0; num135 < 2; num135++)
                             {
-                                for (int num136 = 0; num136 < 3; num136++)
+                                for (var num136 = 0; num136 < 3; num136++)
                                 {
-                                    Tile tile22 = Main.tile[num129 + num135, num128 + num136];
+                                    var tile22 = Main.tile[num129 + num135, num128 + num136];
                                     tile22.type = 349;
                                     tile22.frameX = (short) (num135 * 18 + 216);
                                     tile22.frameY = (short) (num136 * 18);
@@ -1945,7 +1858,7 @@ namespace WireShark
                                 }
                                 else
                                 {
-                                    Vector2 position2 = new Vector2(num131 - 4, num132 - 22) - new Vector2(10f);
+                                    var position2 = new Vector2(num131 - 4, num132 - 22) - new Vector2(10f);
                                     Utils.PoofOfSmoke(position2);
                                 }
                             }
@@ -1975,27 +1888,27 @@ namespace WireShark
                         {
                             if (CheckMech(num129, num128, 300))
                             {
-                                List<int> array = new List<int>();
-                                int num137 = 0;
-                                for (int num138 = 0; num138 < 200; num138++)
+                                var array = new List<int>();
+                                var num137 = 0;
+                                for (var num138 = 0; num138 < 200; num138++)
                                 {
-                                    bool vanillaCanGo = Main.npc[num138].type == NPCID.Merchant ||
-                                                        Main.npc[num138].type == NPCID.ArmsDealer ||
-                                                        Main.npc[num138].type == NPCID.Guide ||
-                                                        Main.npc[num138].type == NPCID.Demolitionist ||
-                                                        Main.npc[num138].type == NPCID.Clothier ||
-                                                        Main.npc[num138].type == NPCID.GoblinTinkerer ||
-                                                        Main.npc[num138].type == NPCID.Wizard ||
-                                                        Main.npc[num138].type == NPCID.SantaClaus ||
-                                                        Main.npc[num138].type == NPCID.Truffle ||
-                                                        Main.npc[num138].type == NPCID.DyeTrader ||
-                                                        Main.npc[num138].type == NPCID.Cyborg ||
-                                                        Main.npc[num138].type == NPCID.Painter ||
-                                                        Main.npc[num138].type == NPCID.WitchDoctor ||
-                                                        Main.npc[num138].type == NPCID.Pirate ||
-                                                        Main.npc[num138].type == NPCID.LightningBug ||
-                                                        Main.npc[num138].type == NPCID.Angler ||
-                                                        Main.npc[num138].type == NPCID.DD2Bartender;
+                                    var vanillaCanGo = Main.npc[num138].type == NPCID.Merchant ||
+                                                       Main.npc[num138].type == NPCID.ArmsDealer ||
+                                                       Main.npc[num138].type == NPCID.Guide ||
+                                                       Main.npc[num138].type == NPCID.Demolitionist ||
+                                                       Main.npc[num138].type == NPCID.Clothier ||
+                                                       Main.npc[num138].type == NPCID.GoblinTinkerer ||
+                                                       Main.npc[num138].type == NPCID.Wizard ||
+                                                       Main.npc[num138].type == NPCID.SantaClaus ||
+                                                       Main.npc[num138].type == NPCID.Truffle ||
+                                                       Main.npc[num138].type == NPCID.DyeTrader ||
+                                                       Main.npc[num138].type == NPCID.Cyborg ||
+                                                       Main.npc[num138].type == NPCID.Painter ||
+                                                       Main.npc[num138].type == NPCID.WitchDoctor ||
+                                                       Main.npc[num138].type == NPCID.Pirate ||
+                                                       Main.npc[num138].type == NPCID.LightningBug ||
+                                                       Main.npc[num138].type == NPCID.Angler ||
+                                                       Main.npc[num138].type == NPCID.DD2Bartender;
                                     if (Main.npc[num138].active &&
                                         NPCLoader.CanGoToStatue(Main.npc[num138], true, vanillaCanGo))
                                     {
@@ -2006,7 +1919,7 @@ namespace WireShark
 
                                 if (num137 > 0)
                                 {
-                                    int num139 = array[Main.rand.Next(num137)];
+                                    var num139 = array[Main.rand.Next(num137)];
                                     Main.npc[num139].position.X = num131 - Main.npc[num139].width / 2;
                                     Main.npc[num139].position.Y = num132 - Main.npc[num139].height - 1;
 
@@ -2020,16 +1933,16 @@ namespace WireShark
                         {
                             if (CheckMech(num129, num128, 300))
                             {
-                                List<int> array2 = new List<int>();
-                                int num140 = 0;
-                                for (int num141 = 0; num141 < 200; num141++)
+                                var array2 = new List<int>();
+                                var num140 = 0;
+                                for (var num141 = 0; num141 < 200; num141++)
                                 {
-                                    bool vanillaCanGo2 = Main.npc[num141].type == NPCID.Nurse ||
-                                                         Main.npc[num141].type == NPCID.Dryad ||
-                                                         Main.npc[num141].type == NPCID.Mechanic ||
-                                                         Main.npc[num141].type == NPCID.Steampunker ||
-                                                         Main.npc[num141].type == NPCID.PartyGirl ||
-                                                         Main.npc[num141].type == NPCID.Stylist;
+                                    var vanillaCanGo2 = Main.npc[num141].type == NPCID.Nurse ||
+                                                        Main.npc[num141].type == NPCID.Dryad ||
+                                                        Main.npc[num141].type == NPCID.Mechanic ||
+                                                        Main.npc[num141].type == NPCID.Steampunker ||
+                                                        Main.npc[num141].type == NPCID.PartyGirl ||
+                                                        Main.npc[num141].type == NPCID.Stylist;
                                     if (Main.npc[num141].active &&
                                         NPCLoader.CanGoToStatue(Main.npc[num141], false, vanillaCanGo2))
                                     {
@@ -2040,7 +1953,7 @@ namespace WireShark
 
                                 if (num140 > 0)
                                 {
-                                    int num142 = array2[Main.rand.Next(num140)];
+                                    var num142 = array2[Main.rand.Next(num140)];
                                     Main.npc[num142].position.X = num131 - Main.npc[num142].width / 2;
                                     Main.npc[num142].position.Y = num132 - Main.npc[num142].height - 1;
 
@@ -2059,10 +1972,7 @@ namespace WireShark
                     Main.npc[num133].value = 0f;
                     Main.npc[num133].npcSlots = 0f;
                     Main.npc[num133].SpawnedFromStatue = true;
-                    return;
                 }
-
-                return;
             }
         }
     }
@@ -2072,7 +1982,7 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             {
-                int num143 = j - tile.frameY / 18;
+                var num143 = j - tile.frameY / 18;
                 int num144;
                 for (num144 = tile.frameX / 18; num144 >= 2; num144 -= 2)
                 {
@@ -2091,11 +2001,11 @@ namespace WireShark
                     num145 = -216;
                 }
 
-                for (int num146 = 0; num146 < 2; num146++)
+                for (var num146 = 0; num146 < 2; num146++)
                 {
-                    for (int num147 = 0; num147 < 3; num147++)
+                    for (var num147 = 0; num147 < 3; num147++)
                     {
-                        Tile tile23 = Main.tile[num144 + num146, num143 + num147];
+                        var tile23 = Main.tile[num144 + num146, num143 + num147];
                         tile23.frameX += num145;
                     }
                 }
@@ -2105,7 +2015,6 @@ namespace WireShark
                 }
 
                 Animation.NewTemporaryAnimation((num145 > 0) ? 0 : 1, 349, num144, num143);
-                return;
             }
         }
     }
@@ -2120,7 +2029,6 @@ namespace WireShark
         protected override void HitWireInternal()
         {
             WorldGen.SwitchMB(i, j);
-            return;
         }
     }
     public class Tile4 : TileInfo
@@ -2135,6 +2043,20 @@ namespace WireShark
             {
                 tile.frameX -= 66;
             }
+        }
+    }
+
+    public class ModTileInfo : TileInfo
+    {
+        private readonly ModTile _modTile;
+        public ModTileInfo(ModTile tile)
+        {
+            _modTile = tile;
+        }
+
+        protected override void HitWireInternal()
+        {
+            _modTile.HitWire(i, j);
         }
     }
 }

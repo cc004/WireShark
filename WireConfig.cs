@@ -8,7 +8,7 @@ using Terraria.ModLoader.Config;
 
 namespace WireShark
 {
-    public class WireConfig : ModConfig
+    public abstract class WireConfig : ModConfig
     {
         public override ConfigScope Mode => ConfigScope.ServerSide;
 

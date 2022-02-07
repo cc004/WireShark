@@ -7,13 +7,13 @@ namespace WireShark {
 
         private static void Preprocess()
         {
+            WiringWrapper.Initialize();
             WiringWrapper._wireAccelerator.Preprocess();
             WiringWrapper.Initialize_GatesDone();
             WiringWrapper.Initialize_LogicLamps();
         }
         public override void Load()
         {
-            WiringWrapper.Initialize();
             WorldFile.OnWorldLoad += Preprocess;
             On.Terraria.Wiring.Actuate += Wiring_Actuate;
             On.Terraria.Wiring.ActuateForced += Wiring_ActuateForced;

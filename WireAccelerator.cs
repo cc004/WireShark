@@ -77,39 +77,44 @@ namespace WireShark {
             }
             visited[id] = now_number;
         }
-        
-        private static readonly Dictionary<int, int[,,,]> __vis = new ();
+
+        private static ConcurrentQueue<Ref<int[,,,]>> disposing = new();
+
+        [ThreadStatic]
+        private static Ref<int[,,,]> __vis;
 
         private static int[,,,] _vis
         {
             get
             {
-                lock (__vis)
-                    if (!__vis.TryGetValue(CurrentThread.ManagedThreadId, out var val)) return val;
-                var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
-                for (var i = 0; i < Main.maxTilesX; i++)
+                if (__vis?.Value == null)
                 {
-                    for (var j = 0; j < Main.maxTilesY; j++)
+                    var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
+                    for (var i = 0; i < Main.maxTilesX; i++)
                     {
-                        for (var k = 0; k < 4; k++)
+                        for (var j = 0; j < Main.maxTilesY; j++)
                         {
-                            ___vis[i, j, k, 0] = -1;
-                            ___vis[i, j, k, 1] = -1;
-                            ___vis[i, j, k, 2] = -1;
+                            for (var k = 0; k < 4; k++)
+                            {
+                                ___vis[i, j, k, 0] = -1;
+                                ___vis[i, j, k, 1] = -1;
+                                ___vis[i, j, k, 2] = -1;
+                            }
                         }
                     }
+
+                    __vis = new Ref<int[,,,]>(___vis);
+                    disposing.Enqueue(__vis);
                 }
 
-                lock (__vis) 
-                    __vis.Add(CurrentThread.ManagedThreadId, ___vis);
-                return ___vis;
+                return __vis.Value;
             }
         }
 
         private int[,,] _visIndexCache;
         private byte[,] _wireCache;
         private TileInfo[,] _tileCache;
-        internal static bool noWireOrder;
+        internal static bool noWireOrder = true;
 
         public void Preprocess() {
             _inputConnectedCompoents = new int[Main.maxTilesX, Main.maxTilesY, 4];
@@ -198,7 +203,9 @@ namespace WireShark {
             visited = new int[count];
             now_number = 1;
 
-            __vis.Clear();
+            foreach (var r in disposing)
+                r.Value = null;
+            disposing.Clear();
             _refreshedBoxes = new PixelBox[_boxes.Count];
             boxCount = 0;
             _boxes = null;

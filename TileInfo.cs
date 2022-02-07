@@ -15,14 +15,14 @@ using static WireShark.WiringWrapper;
 
 namespace WireShark
 {
-    public abstract class TileInfo
+    public class TileInfo
     {
         public override string ToString()
         {
             return $"{tile}@({i},{j})";
         }
 
-        protected int i, j;
+        public int i, j;
 
         public ushort type 
         { 
@@ -49,7 +49,7 @@ namespace WireShark
 
         public static TileInfo CreateTileInfo(int x, int y)
         {
-            TileInfo result = null;
+            TileInfo result;
             var mtile = ModContent.GetModTile(Main.tile[x, y].type);
             if (mtile != null)
             {
@@ -59,7 +59,10 @@ namespace WireShark
             {
                 result = Activator.CreateInstance(t) as TileInfo;
             }
-            else return null;
+            else
+            {
+                result = new TileInfo();
+            }
 
             result.tile = Main.tile[x, y];
             result.i = x;
@@ -69,7 +72,12 @@ namespace WireShark
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected abstract void HitWireInternal();
+        protected virtual void HitWireInternal()
+        {
+
+        }
+
+        [MethodImpl]
 
         public void HitWire()
         {

@@ -70,7 +70,8 @@ namespace WireShark {
             triggeredBy = new Point16(x, y);
             foreach (var tile in info) {
                 //File.AppendAllText("wire.log",$"logic gate {triggeredBy} triggers tile {tile}\n");
-                tile.HitWire();
+                if (tile.i != x || tile.j != y)
+                    tile.HitWire();
             }
             visited[id] = now_number;
         }

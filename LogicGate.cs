@@ -4,6 +4,7 @@ using Terraria;
 using Terraria.DataStructures;
 using Terraria.GameContent.Events;
 using Terraria.ModLoader;
+using WireShark.Tiles;
 
 namespace WireShark
 {

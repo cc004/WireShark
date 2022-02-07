@@ -13,6 +13,8 @@ using Terraria.DataStructures;
 using Terraria.GameContent.Events;
 using Terraria.ID;
 using Terraria.ModLoader;
+using WireShark.Tiles;
+using static System.Threading.Thread;
 using static WireShark.WiringWrapper;
 
 namespace WireShark {
@@ -75,37 +77,32 @@ namespace WireShark {
             }
             visited[id] = now_number;
         }
-
-        private static ConcurrentQueue<Ref<int[,,,]>> disposing = new();
-
-        [ThreadStatic]
-        private static Ref<int[,,,]> __vis;
+        
+        private static readonly Dictionary<int, int[,,,]> __vis = new ();
 
         private static int[,,,] _vis
         {
             get
             {
-                if (__vis?.Value == null)
+                lock (__vis)
+                    if (!__vis.TryGetValue(CurrentThread.ManagedThreadId, out var val)) return val;
+                var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
+                for (var i = 0; i < Main.maxTilesX; i++)
                 {
-                    var ___vis = new int[Main.maxTilesX, Main.maxTilesY, 4, 3];
-                    for (var i = 0; i < Main.maxTilesX; i++)
+                    for (var j = 0; j < Main.maxTilesY; j++)
                     {
-                        for (var j = 0; j < Main.maxTilesY; j++)
+                        for (var k = 0; k < 4; k++)
                         {
-                            for (var k = 0; k < 4; k++)
-                            {
-                                ___vis[i, j, k, 0] = -1;
-                                ___vis[i, j, k, 1] = -1;
-                                ___vis[i, j, k, 2] = -1;
-                            }
+                            ___vis[i, j, k, 0] = -1;
+                            ___vis[i, j, k, 1] = -1;
+                            ___vis[i, j, k, 2] = -1;
                         }
                     }
-
-                    __vis = new Ref<int[,,,]>(___vis);
-                    disposing.Enqueue(__vis);
                 }
 
-                return __vis.Value;
+                lock (__vis) 
+                    __vis.Add(CurrentThread.ManagedThreadId, ___vis);
+                return ___vis;
             }
         }
 
@@ -184,7 +181,7 @@ namespace WireShark {
                 {
                     if (finished > 0)
                         Main.statusText =$"preprocessing circuit {finished * 1f / total:P1}";
-                    Thread.Sleep(100);
+                    Sleep(100);
                 }
             }).Start();
             tasks.AsParallel().WithDegreeOfParallelism(threadCount).ForAll(task =>
@@ -201,9 +198,7 @@ namespace WireShark {
             visited = new int[count];
             now_number = 1;
 
-            foreach (var r in disposing)
-                r.Value = null;
-            disposing.Clear();
+            __vis.Clear();
             _refreshedBoxes = new PixelBox[_boxes.Count];
             boxCount = 0;
             _boxes = null;
@@ -218,79 +213,78 @@ namespace WireShark {
             if (ModContent.GetModTile(type) != null)
                 return true;
             if (tile.HasActuator) return true;
-            if (tile.IsActive) {
-                switch (type)
-                {
-                    case 144:
-                    case 421 when !tile.HasActuator:
-                    case 422 when !tile.HasActuator:
-                    case >= 255 and <= 268 when !tile.HasActuator:
-                    case 419:
-                    case 406:
-                    case 452:
-                    case 411:
-                    case 425:
-                    case 405:
-                    case 209:
-                    case 212:
-                    case 215:
-                    case 130:
-                    case 131:
-                    case 387:
-                    case 386:
-                    case 389:
-                    case 388:
-                    case 11:
-                    case 10:
-                    case 216:
-                    case 497:
-                    case 15 when tile.frameY / 40 == 1:
-                    case 15 when tile.frameY / 40 == 20:
-                    case 335:
-                    case 338:
-                    case 235:
-                    case 4:
-                    case 429:
-                    case 149:
-                    case 244:
-                    case 565:
-                    case 42:
-                    case 93:
-                    case 126:
-                    case 95:
-                    case 100:
-                    case 173:
-                    case 564:
-                    case 593:
-                    case 594:
-                    case 34:
-                    case 314:
-                    case 33:
-                    case 174:
-                    case 49:
-                    case 372:
-                    case 92:
-                    case 137:
-                    case 443:
-                    case 531:
-                    case 139:
-                    case 35:
-                    case 207:
-                    case 410:
-                    case 480:
-                    case 509:
-                    case 455:
-                    case 141:
-                    case 210:
-                    case 142:
-                    case 143:
-                    case 105:
-                    case 349:
-                    case 506:
-                    case 546:
-                    case 557:
-                        return true;
-                }
+            if (!tile.IsActive) return false;
+            switch (type)
+            {
+                case 144:
+                case 421 when !tile.HasActuator:
+                case 422 when !tile.HasActuator:
+                case >= 255 and <= 268 when !tile.HasActuator:
+                case 419:
+                case 406:
+                case 452:
+                case 411:
+                case 425:
+                case 405:
+                case 209:
+                case 212:
+                case 215:
+                case 130:
+                case 131:
+                case 387:
+                case 386:
+                case 389:
+                case 388:
+                case 11:
+                case 10:
+                case 216:
+                case 497:
+                case 15 when tile.frameY / 40 == 1:
+                case 15 when tile.frameY / 40 == 20:
+                case 335:
+                case 338:
+                case 235:
+                case 4:
+                case 429:
+                case 149:
+                case 244:
+                case 565:
+                case 42:
+                case 93:
+                case 126:
+                case 95:
+                case 100:
+                case 173:
+                case 564:
+                case 593:
+                case 594:
+                case 34:
+                case 314:
+                case 33:
+                case 174:
+                case 49:
+                case 372:
+                case 92:
+                case 137:
+                case 443:
+                case 531:
+                case 139:
+                case 35:
+                case 207:
+                case 410:
+                case 480:
+                case 509:
+                case 455:
+                case 141:
+                case 210:
+                case 142:
+                case 143:
+                case 105:
+                case 349:
+                case 506:
+                case 546:
+                case 557:
+                    return true;
             }
             return false;
         }
@@ -361,7 +355,7 @@ namespace WireShark {
 
                 var pt = new Point16(node.X, node.Y);
 
-                if (curTile.IsActive && curTile.type != 0) {
+                if (curTile.IsActive) {
                     if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
                         if (!_pixelBoxMap.TryGetValue(pt, out var box))
                             _pixelBoxMap.Add(pt, box = new PixelBox()

@@ -4,13 +4,15 @@ using Terraria.IO;
 
 namespace WireShark {
     public class WireShark : Mod {
+
         private static void Preprocess()
         {
             WiringWrapper._wireAccelerator.Preprocess();
             WiringWrapper.Initialize_GatesDone();
             WiringWrapper.Initialize_LogicLamps();
         }
-        public override void Load() {
+        public override void Load()
+        {
             WiringWrapper.Initialize();
             WorldFile.OnWorldLoad += Preprocess;
             On.Terraria.Wiring.Actuate += Wiring_Actuate;
@@ -90,7 +92,6 @@ namespace WireShark {
 
         public override void Unload()
         {
-            WiringWrapper.Unload();
             WorldFile.OnWorldLoad -= Preprocess;
             On.Terraria.Wiring.Actuate -= Wiring_Actuate;
             On.Terraria.Wiring.ActuateForced -= Wiring_ActuateForced;

@@ -32,6 +32,7 @@ namespace WireShark
         // Token: 0x06000754 RID: 1876 RVA: 0x003551A8 File Offset: 0x003533A8
         public static void Initialize()
         {
+            onLogicLampChange = new LogicGate[Main.maxTilesX, Main.maxTilesY];
             _wireAccelerator = new WireAccelerator();
             _wireList = new DoubleStack<Point16>(1024, 0);
             _wireDirectionList = new DoubleStack<byte>(1024, 0);
@@ -51,6 +52,7 @@ namespace WireShark
 
         public static void Unload()
         {
+            onLogicLampChange = null;
             _wireAccelerator = null;
             _wireList = null;
             _wireDirectionList = null;
@@ -288,7 +290,7 @@ namespace WireShark
             {
                 return;
             }
-            if (!tile.IsActive)
+            if (tile.IsActuated)
             {
                 ReActive(i, j);
                 return;
@@ -817,7 +819,6 @@ namespace WireShark
 
         public static void Initialize_LogicLamps()
         {
-            onLogicLampChange = new LogicGate[Main.maxTilesX, Main.maxTilesY];
             for (var i = 0; i < Main.maxTilesX; ++i)
             for (var j = 0; j < Main.maxTilesY; ++j)
                 if (Main.tile[i, j].IsActive && Main.tile[i, j].type == TileID.LogicGate)
@@ -907,41 +908,16 @@ namespace WireShark
         // Token: 0x06000766 RID: 1894 RVA: 0x00359EC4 File Offset: 0x003580C4
         public static void DeActive(int i, int j)
         {
-            if (!Main.tile[i, j].IsActive)
-            {
-                return;
-            }
-            var flag = Main.tileSolid[Main.tile[i, j].type] && !TileID.Sets.NotReallySolid[Main.tile[i, j].type];
-            var type = Main.tile[i, j].type;
-            if (type == 314 || (uint)(type - 386) <= 3u)
-            {
-                flag = false;
-            }
-            if (!flag)
-            {
-                return;
-            }
-            if (Main.tile[i, j - 1].IsActive && (Main.tile[i, j - 1].type == 5 || TileID.Sets.BasicChest[Main.tile[i, j - 1].type] || Main.tile[i, j - 1].type == 26 || Main.tile[i, j - 1].type == 77 || Main.tile[i, j - 1].type == 72 || Main.tile[i, j - 1].type == 88))
-            {
-                return;
-            }
-            Main.tile[i, j].IsActive = false;
+            // XX: removed actuate condition
+            Main.tile[i, j].IsActuated = true;
             WorldGen.SquareTileFrame(i, j, false);
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-            {
-
-            }
         }
 
         // Token: 0x06000767 RID: 1895 RVA: 0x0035A018 File Offset: 0x00358218
         public static void ReActive(int i, int j)
         {
-            Main.tile[i, j].IsActive = true;
+            Main.tile[i, j].IsActuated = false;
             WorldGen.SquareTileFrame(i, j, false);
-            if (Main.netMode != NetmodeID.MultiplayerClient)
-            {
-
-            }
         }
 
         // Token: 0x04000C71 RID: 3185

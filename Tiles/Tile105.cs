@@ -11,8 +11,8 @@ public class Tile105 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num128 = j - tile.frameY / 18;
-            var num129 = tile.frameX / 18;
+            var num128 = j - tile.TileFrameY / 18;
+            var num129 = tile.TileFrameX / 18;
             var num130 = 0;
             while (num129 >= 2)
             {
@@ -21,9 +21,9 @@ public class Tile105 : TileInfo
             }
 
             num129 = i - num129;
-            num129 = i - tile.frameX % 36 / 18;
-            num128 = j - tile.frameY % 54 / 18;
-            num130 = tile.frameX / 36 + tile.frameY / 54 * 55;
+            num129 = i - tile.TileFrameX % 36 / 18;
+            num128 = j - tile.TileFrameY % 54 / 18;
+            num130 = tile.TileFrameX / 36 + tile.TileFrameY / 54 * 55;
 
 
             var num131 = num129 * 16 + 16;
@@ -152,7 +152,7 @@ public class Tile105 : TileInfo
             {
                 if (!flag12 || !Collision.SolidTiles(num129 - 2, num129 + 3, num128, num128 + 2))
                 {
-                    num133 = NPC.NewNPC(num131, num132 - 12, num134, 0, 0f, 0f, 0f, 0f, 255);
+                    num133 = NPC.NewNPC(null, num131, num132 - 12, num134, 0, 0f, 0f, 0f, 0f, 255);
                 }
                 else
                 {
@@ -169,7 +169,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 1))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 1, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 1, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -178,7 +178,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 49))
                         {
-                            num133 = NPC.NewNPC(num131 - 4, num132 - 6, 49, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131 - 4, num132 - 6, 49, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -187,7 +187,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 55))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 55, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 55, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -196,7 +196,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 46))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 46, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 46, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -205,7 +205,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 21))
                         {
-                            num133 = NPC.NewNPC(num131, num132, 21, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132, 21, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -214,7 +214,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 67))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 67, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 67, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -223,7 +223,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 63))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 63, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 63, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -232,7 +232,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 85))
                         {
-                            num133 = NPC.NewNPC(num131 - 9, num132, 85, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131 - 9, num132, 85, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -241,7 +241,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 74))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, Utils.SelectRandom<short>(Main.rand,
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, Utils.SelectRandom<short>(Main.rand,
                                 new short[]
                                 {
                                     74,
@@ -259,9 +259,9 @@ public class Tile105 : TileInfo
                             for (var num136 = 0; num136 < 3; num136++)
                             {
                                 var tile22 = Main.tile[num129 + num135, num128 + num136];
-                                tile22.type = 349;
-                                tile22.frameX = (short) (num135 * 18 + 216);
-                                tile22.frameY = (short) (num136 * 18);
+                                tile22.TileType = 349;
+                                tile22.TileFrameX = (short) (num135 * 18 + 216);
+                                tile22.TileFrameY = (short) (num136 * 18);
                             }
                         }
 
@@ -276,7 +276,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 30) && NPC.MechSpawn(num131, num132, 58))
                         {
-                            num133 = NPC.NewNPC(num131, num132 - 12, 58, 0, 0f, 0f, 0f, 0f, 255);
+                            num133 = NPC.NewNPC(null, num131, num132 - 12, 58, 0, 0f, 0f, 0f, 0f, 255);
                         }
 
                         break;
@@ -286,7 +286,7 @@ public class Tile105 : TileInfo
                         if (WiringWrapper.CheckMech(num129, num128, 600) && Item.MechSpawn(num131, num132, 58) &&
                             Item.MechSpawn(num131, num132, 1734) && Item.MechSpawn(num131, num132, 1867))
                         {
-                            Item.NewItem(num131, num132 - 16, 0, 0, 58, 1, false, 0, false, false);
+                            Item.NewItem(null, num131, num132 - 16, 0, 0, 58, 1, false, 0, false, false);
                         }
 
                         break;
@@ -297,7 +297,7 @@ public class Tile105 : TileInfo
                         {
                             if (!Collision.SolidTiles(num129 - 2, num129 + 3, num128, num128 + 2))
                             {
-                                num133 = NPC.NewNPC(num131, num132 - 12, 65, 0, 0f, 0f, 0f, 0f, 255);
+                                num133 = NPC.NewNPC(null, num131, num132 - 12, 65, 0, 0f, 0f, 0f, 0f, 255);
                             }
                             else
                             {
@@ -313,7 +313,7 @@ public class Tile105 : TileInfo
                         if (WiringWrapper.CheckMech(num129, num128, 600) && Item.MechSpawn(num131, num132, 184) &&
                             Item.MechSpawn(num131, num132, 1735) && Item.MechSpawn(num131, num132, 1868))
                         {
-                            Item.NewItem(num131, num132 - 16, 0, 0, 184, 1, false, 0, false, false);
+                            Item.NewItem(null, num131, num132 - 16, 0, 0, 184, 1, false, 0, false, false);
                         }
 
                         break;
@@ -322,7 +322,7 @@ public class Tile105 : TileInfo
                     {
                         if (WiringWrapper.CheckMech(num129, num128, 600) && Item.MechSpawn(num131, num132, 166))
                         {
-                            Item.NewItem(num131, num132 - 20, 0, 0, 166, 1, false, 0, false, false);
+                            Item.NewItem(null, num131, num132 - 20, 0, 0, 166, 1, false, 0, false, false);
                         }
 
                         break;

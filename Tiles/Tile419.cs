@@ -6,7 +6,7 @@ public class Tile419 : TileInfo
     {
         {
             var lgate = WiringWrapper.onLogicLampChange[i, j];
-            switch (tile.frameX)
+            switch (tile.TileFrameX)
             {
                 case 0:
                 {
@@ -17,7 +17,7 @@ public class Tile419 : TileInfo
                             WiringWrapper._LampsToCheck.Enqueue(lgate);
                     }
 
-                    tile.frameX = 18;
+                    tile.TileFrameX = 18;
                     break;
                 }
                 case 18:
@@ -29,7 +29,7 @@ public class Tile419 : TileInfo
                             WiringWrapper._LampsToCheck.Enqueue(lgate);
                     }
 
-                    tile.frameX = 0;
+                    tile.TileFrameX = 0;
                     break;
                 }
                 default:

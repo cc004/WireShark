@@ -7,7 +7,7 @@ public class Tile429 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num151 = (short) (Main.tile[i, j].frameX / 18);
+            var num151 = (short) (Main.tile[i, j].TileFrameX / 18);
             var flag6 = num151 % 2 >= 1;
             var flag7 = num151 % 4 >= 2;
             var flag8 = num151 % 8 >= 4;
@@ -37,12 +37,12 @@ public class Tile429 : TileInfo
             if (flag10)
             {
                 var tile6 = tile;
-                tile6.frameX += num73;
+                tile6.TileFrameX += num73;
             }
             else
             {
                 var tile7 = tile;
-                tile7.frameX -= num73;
+                tile7.TileFrameX -= num73;
             }
         }
     }

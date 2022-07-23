@@ -7,8 +7,8 @@ public class Tile335 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num67 = j - tile.frameY / 18;
-            var num68 = i - tile.frameX / 18;
+            var num67 = j - tile.TileFrameY / 18;
+            var num68 = i - tile.TileFrameX / 18;
 
 
             if (WiringWrapper.CheckMech(num68, num67, 30))

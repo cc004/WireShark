@@ -8,7 +8,7 @@ public class Tile137 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num99 = tile.frameY / 18;
+            var num99 = tile.TileFrameY / 18;
             var zero = Vector2.Zero;
             var speedX = 0f;
             var speedY = 0f;
@@ -21,8 +21,8 @@ public class Tile137 : TileInfo
                 case 2:
                     if (WiringWrapper.CheckMech(i, j, 200))
                     {
-                        var num101 = (tile.frameX == 0) ? -1 : ((tile.frameX == 18) ? 1 : 0);
-                        var num102 = (tile.frameX < 36) ? 0 : ((tile.frameX < 72) ? -1 : 1);
+                        var num101 = (tile.TileFrameX == 0) ? -1 : ((tile.TileFrameX == 18) ? 1 : 0);
+                        var num102 = (tile.TileFrameX < 36) ? 0 : ((tile.TileFrameX < 72) ? -1 : 1);
                         zero = new Vector2(i * 16 + 8 + 10 * num101, j * 16 + 9 + num102 * 9);
                         var num103 = 3f;
                         if (num99 == 0)
@@ -110,7 +110,7 @@ public class Tile137 : TileInfo
                             damage2 = 40;
                             var num107 = 0;
                             var num108 = 0;
-                            switch (tile.frameX / 18)
+                            switch (tile.TileFrameX / 18)
                             {
                                 case 0:
                                 case 1:
@@ -145,7 +145,7 @@ public class Tile137 : TileInfo
                     {
                         var num109 = 0;
                         var num110 = 0;
-                        switch (tile.frameX / 18)
+                        switch (tile.TileFrameX / 18)
                         {
                             case 0:
                             case 1:
@@ -182,7 +182,7 @@ public class Tile137 : TileInfo
                     if (WiringWrapper.CheckMech(i, j, 200))
                     {
                         var num111 = -1;
-                        if (tile.frameX != 0)
+                        if (tile.TileFrameX != 0)
                         {
                             num111 = 1;
                         }
@@ -200,7 +200,7 @@ public class Tile137 : TileInfo
                     if (WiringWrapper.CheckMech(i, j, 200))
                     {
                         var num112 = -1;
-                        if (tile.frameX != 0)
+                        if (tile.TileFrameX != 0)
                         {
                             num112 = 1;
                         }
@@ -218,7 +218,7 @@ public class Tile137 : TileInfo
                     if (WiringWrapper.CheckMech(i, j, 200))
                     {
                         var num113 = -1;
-                        if (tile.frameX != 0)
+                        if (tile.TileFrameX != 0)
                         {
                             num113 = 1;
                         }

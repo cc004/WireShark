@@ -9,8 +9,8 @@ public class Tile425 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num19 = tile.frameX % 36 / 18;
-            var num20 = tile.frameY % 36 / 18;
+            var num19 = tile.TileFrameX % 36 / 18;
+            var num20 = tile.TileFrameY % 36 / 18;
             var num21 = i - num19;
             var num22 = j - num20;
             for (var num23 = num21; num23 < num21 + 2; num23++)

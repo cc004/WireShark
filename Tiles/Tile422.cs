@@ -8,7 +8,7 @@ public class Tile422 : TileInfo
     {
         if (!tile.HasActuator)
         {
-            tile.type = 421;
+            tile.TileType = 421;
             WorldGen.SquareTileFrame(i, j, true);
         }
     }

@@ -86,7 +86,7 @@ namespace WireShark
             if (active ^ cur)
             {
                 active = cur;
-                mapTile.frameX = (short)(cur ? 18 : 0);
+                mapTile.TileFrameX = (short)(cur ? 18 : 0);
                 if (WiringWrapper._GatesDone[x, y] != WiringWrapper.cur_gatesdone) WiringWrapper._GatesNext.Enqueue(new Point16(x, y));
             }
         }

@@ -7,7 +7,7 @@ public class Tile131 : TileInfo
     protected override void HitWireInternal()
     {
 
-        tile.type = 130;
+        tile.TileType = 130;
         WorldGen.SquareTileFrame(i, j, true);
     }
 }

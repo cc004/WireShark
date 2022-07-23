@@ -7,12 +7,12 @@ public class Tile209 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num34 = tile.frameX % 72 / 18;
-            var num35 = tile.frameY % 54 / 18;
+            var num34 = tile.TileFrameX % 72 / 18;
+            var num35 = tile.TileFrameY % 54 / 18;
             var num36 = i - num34;
             var num37 = j - num35;
-            var num38 = tile.frameY / 54;
-            var num39 = tile.frameX / 72;
+            var num38 = tile.TileFrameY / 54;
+            var num39 = tile.TileFrameX / 72;
             var num40 = -1;
             if (num34 == 1 || num34 == 2)
             {
@@ -47,7 +47,7 @@ public class Tile209 : TileInfo
                 {
                     for (var num43 = num37; num43 < num37 + 3; num43++)
                     {
-                        Main.tile[num42, num43].frameY = (short) (Main.tile[num42, num43].frameY + num41);
+                        Main.tile[num42, num43].TileFrameY = (short) (Main.tile[num42, num43].TileFrameY + num41);
                     }
                 }
 
@@ -61,7 +61,7 @@ public class Tile209 : TileInfo
                 {
                     for (var num45 = num37; num45 < num37 + 3; num45++)
                     {
-                        Main.tile[num44, num45].frameX = (short) (Main.tile[num44, num45].frameX + num41);
+                        Main.tile[num44, num45].TileFrameX = (short) (Main.tile[num44, num45].TileFrameX + num41);
                     }
                 }
 

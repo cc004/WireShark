@@ -5,8 +5,8 @@ public class Tile143 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num120 = j - tile.frameY / 18;
-            var num121 = tile.frameX / 18;
+            var num120 = j - tile.TileFrameY / 18;
+            var num121 = tile.TileFrameX / 18;
             if (num121 > 1)
             {
                 num121 -= 2;

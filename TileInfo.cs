@@ -44,8 +44,8 @@ namespace WireShark
 
         public ushort type 
         { 
-            get => tile.type; 
-            set => tile.type = value; 
+            get => tile.TileType; 
+            set => tile.TileType = value; 
         }
 
         public Tile tile;
@@ -67,12 +67,12 @@ namespace WireShark
         public static TileInfo CreateTileInfo(int x, int y)
         {
             TileInfo result;
-            var mtile = ModContent.GetModTile(Main.tile[x, y].type);
+            var mtile = ModContent.GetModTile(Main.tile[x, y].TileType);
             if (mtile != null)
             {
                 result = new ModTileInfo(mtile);
             }
-            else if (tileinfo.TryGetValue(Main.tile[x, y].type, out var t))
+            else if (tileinfo.TryGetValue(Main.tile[x, y].TileType, out var t))
             {
                 result = Activator.CreateInstance(t) as TileInfo;
             }
@@ -84,7 +84,7 @@ namespace WireShark
             result.tile = Main.tile[x, y];
             result.i = x;
             result.j = y;
-            result.type = result.tile.type;
+            result.type = result.tile.TileType;
             return result;
         }
 

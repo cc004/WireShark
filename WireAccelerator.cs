@@ -136,12 +136,12 @@ namespace WireShark {
                         var dir = k;
                         if (curTile != null)
                         {
-                            if (curTile.type == TileID.WirePipe)
+                            if (curTile.TileType == TileID.WirePipe)
                             {
                                 var s = GetWireBoxIndex(curTile, dir);
                                 _visIndexCache[i, j, k] = s;
                             }
-                            else if (curTile.type == TileID.PixelBox)
+                            else if (curTile.TileType == TileID.PixelBox)
                             {
                                 _visIndexCache[i, j, k] = dir / 2;
                             }
@@ -162,7 +162,7 @@ namespace WireShark {
                 for (var i = 0; i < Main.maxTilesX; i++) {
                     if (Main.tile[i, j] != null)
                     {
-                        if (!_sourceTable.Contains(Main.tile[i, j].type)) continue;
+                        if (!_sourceTable.Contains(Main.tile[i, j].TileType)) continue;
                         int wireid = _wireCache[i, j];
                         if (wireid == 0) continue;
                         for (var k = 0; k < 4; k++) {
@@ -216,11 +216,11 @@ namespace WireShark {
 
         private static bool IsAppliance(int i, int j) {
             var tile = Main.tile[i, j];
-            var type = (int)tile.type;
+            var type = (int)tile.TileType;
             if (ModContent.GetModTile(type) != null)
                 return true;
             if (tile.HasActuator) return true;
-            if (!tile.IsActive) return false;
+            if (!tile.HasTile) return false;
             switch (type)
             {
                 case 144:
@@ -246,8 +246,8 @@ namespace WireShark {
                 case 10:
                 case 216:
                 case 497:
-                case 15 when tile.frameY / 40 == 1:
-                case 15 when tile.frameY / 40 == 20:
+                case 15 when tile.TileFrameY / 40 == 1:
+                case 15 when tile.TileFrameY / 40 == 20:
                 case 335:
                 case 338:
                 case 235:
@@ -297,7 +297,7 @@ namespace WireShark {
         }
 
         private int GetWireBoxIndex2(Tile tile, int dir, int i) {
-            var frame = tile.frameX / 18;
+            var frame = tile.TileFrameX / 18;
             if (frame == 0) {
                 if (i != dir) return 0;
                 if (dir == 0 || dir == 1) return 1;
@@ -318,7 +318,7 @@ namespace WireShark {
         }
 
         private int GetWireBoxIndex(Tile tile, int dir) {
-            var frame = tile.frameX / 18;
+            var frame = tile.TileFrameX / 18;
             if (frame == 0) {
                 if (dir == 0 || dir == 1) return 1;
                 else return 2;
@@ -362,8 +362,8 @@ namespace WireShark {
 
                 var pt = new Point16(node.X, node.Y);
 
-                if (curTile.IsActive) {
-                    if (Main.tile[node.X, node.Y].type == TileID.PixelBox) {
+                if (curTile.HasTile) {
+                    if (Main.tile[node.X, node.Y].TileType == TileID.PixelBox) {
                         if (!_pixelBoxMap.TryGetValue(pt, out var box))
                             _pixelBoxMap.Add(pt, box = new PixelBox()
                             {
@@ -395,9 +395,9 @@ namespace WireShark {
                     if (nx < 2 || nx >= Main.maxTilesX - 2 || ny < 2 || ny >= Main.maxTilesY - 2) continue;
                     var tile = Main.tile[nx, ny];
                     if (tile == null) continue;
-                    if (curTile.type == TileID.WirePipe) {
+                    if (curTile.TileType == TileID.WirePipe) {
                         if (GetWireBoxIndex2(curTile, dir, i) == 0) continue;
-                    } else if (curTile.type == TileID.PixelBox)
+                    } else if (curTile.TileType == TileID.PixelBox)
                     {
                         if (dir != i) continue;
                     }

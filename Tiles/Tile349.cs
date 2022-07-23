@@ -8,9 +8,9 @@ public class Tile349 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num143 = j - tile.frameY / 18;
+            var num143 = j - tile.TileFrameY / 18;
             int num144;
-            for (num144 = tile.frameX / 18; num144 >= 2; num144 -= 2)
+            for (num144 = tile.TileFrameX / 18; num144 >= 2; num144 -= 2)
             {
             }
 
@@ -18,7 +18,7 @@ public class Tile349 : TileInfo
 
 
             short num145;
-            if (Main.tile[num144, num143].frameX == 0)
+            if (Main.tile[num144, num143].TileFrameX == 0)
             {
                 num145 = 216;
             }
@@ -32,7 +32,7 @@ public class Tile349 : TileInfo
                 for (var num147 = 0; num147 < 3; num147++)
                 {
                     var tile23 = Main.tile[num144 + num146, num143 + num147];
-                    tile23.frameX += num145;
+                    tile23.TileFrameX += num145;
                 }
             }
 

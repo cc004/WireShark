@@ -8,8 +8,8 @@ public class Tile443 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num117 = tile.frameX / 36;
-            var num118 = i - (tile.frameX - num117 * 36) / 18;
+            var num117 = tile.TileFrameX / 36;
+            var num118 = i - (tile.TileFrameX - num117 * 36) / 18;
             if (WiringWrapper.CheckMech(num118, j, 200))
             {
                 var vector2 = Vector2.Zero;

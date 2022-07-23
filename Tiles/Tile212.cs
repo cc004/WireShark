@@ -9,11 +9,11 @@ public class Tile212 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num46 = tile.frameX % 54 / 18;
-            var num47 = tile.frameY % 54 / 18;
+            var num46 = tile.TileFrameX % 54 / 18;
+            var num47 = tile.TileFrameY % 54 / 18;
             var num48 = i - num46;
             var num49 = j - num47;
-            var num148 = (short) (tile.frameX / 54);
+            var num148 = (short) (tile.TileFrameX / 54);
             var num50 = -1;
             if (num46 == 1)
             {
@@ -48,7 +48,7 @@ public class Tile212 : TileInfo
                 {
                     for (var num53 = num49; num53 < num49 + 3; num53++)
                     {
-                        Main.tile[num52, num53].frameX = (short) (Main.tile[num52, num53].frameX + num51);
+                        Main.tile[num52, num53].TileFrameX = (short) (Main.tile[num52, num53].TileFrameX + num51);
                     }
                 }
 
@@ -68,7 +68,7 @@ public class Tile212 : TileInfo
                 var damage = 0;
                 var knockBack = 0f;
                 var vector = new Vector2((num48 + 2) * 16 - 8, (num49 + 2) * 16 - 8);
-                if (tile.frameX / 54 == 0)
+                if (tile.TileFrameX / 54 == 0)
                 {
                     num54 *= -1f;
                     vector.X -= 12f;

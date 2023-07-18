@@ -353,7 +353,7 @@ public class Tile105 : TileInfo
                                                    Main.npc[num138].type == NPCID.Angler ||
                                                    Main.npc[num138].type == NPCID.DD2Bartender;
                                 if (Main.npc[num138].active &&
-                                    NPCLoader.CanGoToStatue(Main.npc[num138], true, vanillaCanGo))
+                                    NPCLoader.CanGoToStatue(Main.npc[num138], true).HasValue)
                                 {
                                     array.Add(num138);
                                     num137++;
@@ -386,12 +386,11 @@ public class Tile105 : TileInfo
                                                     Main.npc[num141].type == NPCID.Steampunker ||
                                                     Main.npc[num141].type == NPCID.PartyGirl ||
                                                     Main.npc[num141].type == NPCID.Stylist;
-                                if (Main.npc[num141].active &&
-                                    NPCLoader.CanGoToStatue(Main.npc[num141], false, vanillaCanGo2))
-                                {
-                                    array2.Add(num141);
-                                    num140++;
-                                }
+                                    if (Main.npc[num141].active && NPCLoader.CanGoToStatue(Main.npc[num141], false).HasValue)
+                                    {
+                                        array2.Add(num141);
+                                        num140++;
+                                    }
                             }
 
                             if (num140 > 0)

@@ -6,6 +6,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace WireShark
@@ -117,7 +118,7 @@ namespace WireShark
                     if (Main.tile[_mechX[i], _mechY[i]].HasTile && Main.tile[_mechX[i], _mechY[i]].TileType == 411)
                     {
                         var tile = Main.tile[_mechX[i], _mechY[i]];
-                        var num2 = tile.TileFrameY % 36 / 18;
+                        var num2 = tile.TileFrameX % 36 / 18;
                         var num3 = tile.TileFrameY % 36 / 18;
                         var num4 = _mechX[i] - num2;
                         var num5 = _mechY[i] - num3;
@@ -359,13 +360,13 @@ namespace WireShark
                                 liquid = Main.tile[num, num2].LiquidType;
                                 if (flag)
                                 {
-                                    Tile PlaceLiquid = Main.tile[num3, num4];
-                                    PlaceLiquid.LiquidType = LiquidID.Lava;
+                                    var testTile = Main.tile[num3, num4];
+                                    testTile.LiquidType = LiquidID.Lava;
                                 }
                                 if (flag2)
                                 {
-                                    Tile PlaceLiquid = Main.tile[num3, num4];
-                                    PlaceLiquid.LiquidType = LiquidID.Honey;
+                                    var testTile = Main.tile[num3, num4];
+                                    testTile.LiquidType = LiquidID.Honey;
                                 }
                                 WorldGen.SquareTileFrame(num3, num4, true);
                                 if (Main.tile[num, num2].LiquidType == 0)
@@ -911,16 +912,18 @@ namespace WireShark
         public static void DeActive(int i, int j)
         {
             // XX: removed actuate condition
-            Tile tile = Main.tile[i, j];
-            tile.IsActuated = true;
+            var testTile = Main.tile[i, j];
+            testTile.IsActuated = true;
+
             WorldGen.SquareTileFrame(i, j, false);
         }
 
         // Token: 0x06000767 RID: 1895 RVA: 0x0035A018 File Offset: 0x00358218
         public static void ReActive(int i, int j)
         {
-            Tile tile = Main.tile[i, j];
-            tile.IsActuated = false;
+            var testTile = Main.tile[i, j];
+            testTile.IsActuated = false;
+
             WorldGen.SquareTileFrame(i, j, false);
         }
 

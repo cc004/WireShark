@@ -7,7 +7,7 @@ namespace WireShark.Items {
     public class Test : ModItem {
         public override void SetStaticDefaults() {
             // DisplayName.SetDefault("Test"); // By default, capitalization in classnames will add spaces to the display name. You can customize the display name here by uncommenting this line.
-            Tooltip.SetDefault("This is a basic modded sword.");
+            // Tooltip.SetDefault("This is a basic modded sword.");
         }
         public override void SetDefaults() {
             Item.damage = 50;

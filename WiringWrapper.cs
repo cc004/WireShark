@@ -568,11 +568,14 @@ namespace WireShark
         private static readonly short[] frames = {-1, -1, 0, 18};
         private static void PixelBoxPass()
         {
+
             while (_wireAccelerator.boxCount > 0)
             {
                 var box = _wireAccelerator._refreshedBoxes[--_wireAccelerator.boxCount];
-                if (box.state >= PixelBox.PixelBoxState.Horizontal)
-                    box.tile.TileFrameX = frames[(int)box.state];
+                if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 18)
+                    box.tile.TileFrameX = 0;
+                else if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 0)
+                    box.tile.TileFrameX = 18;
                 box.state = PixelBox.PixelBoxState.None;
             }
         }

@@ -846,12 +846,14 @@ namespace WireShark
 
                 foreach (var info in _wireAccelerator._connectionInfos[i])
                 {
-                    if (info is Tile419 && info.tile.TileFrameX != 36 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
+                    if (info is Tile419 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
                     {
                         state ??= new WireState {i = info.i, j = info.j, tile = info.tile};
-                        onLogicLampChange[info.i, info.j] = null;
                         gate.state = state;
                         gate.originalState = gate.lampon > 0;
+                        if (info.tile.TileFrameX != 36)
+                            onLogicLampChange[info.i, info.j] = null;
+                        else result.Add(info);
                     }
                     else result.Add(info);
                 }

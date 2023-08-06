@@ -37,7 +37,7 @@ namespace WireShark {
         // D, U, R, L
         private static readonly int[] dx = { 0, 0, 1, -1 };
         private static readonly int[] dy = { 1, -1, 0, 0 };
-        private TileInfo[][] _connectionInfos;
+        public TileInfo[][] _connectionInfos;
         private int[,,] _inputConnectedCompoents;
 
         private byte GetWireID(int X, int Y) {

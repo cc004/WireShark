@@ -8,6 +8,7 @@ using Terraria.DataStructures;
 using Terraria.ID;
 using Terraria.Map;
 using Terraria.ModLoader;
+using WireShark.Tiles;
 
 namespace WireShark
 {
@@ -744,26 +745,34 @@ namespace WireShark
             }
 
         }
+        
+        private class WireState : TileInfo
+        {
+            public bool state;
+            protected override void HitWireInternal()
+            {
+                state ^= true;
+            }
+        }
 
         private class OneErrorGate : LogicGate
         {
+            public bool originalState;
+            public WireState state;
+            
             protected override bool GetState()
             {
                 throw new NotImplementedException();
             }
 
-            public OneErrorGate()
-            {
-                erroronly = true;
-            }
-
             public override void UpdateLogicGate()
             {
-                if (lampon != 0)
+                if (state.state ^ originalState)
                     if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.Enqueue(new Point16(x, y));
             }
-        }
 
+        }
+        
         private static void CacheLogicGate(int x, int y)
         {
             LogicGate lgate;
@@ -829,6 +838,28 @@ namespace WireShark
             for (var j = 0; j < Main.maxTilesY; ++j)
                 if (Main.tile[i, j].HasTile && Main.tile[i, j].TileType == TileID.LogicGate)
                     CacheLogicGate(i, j);
+
+            for (int i = 0; i < _wireAccelerator._connectionInfos.Length; ++i)
+            {
+                var result = new List<TileInfo>();
+                WireState state = null;
+
+                foreach (var info in _wireAccelerator._connectionInfos[i])
+                {
+                    if (info is Tile419 && info.tile.TileFrameX != 36 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
+                    {
+                        state ??= new WireState {i = info.i, j = info.j, tile = info.tile};
+                        onLogicLampChange[info.i, info.j] = null;
+                        gate.state = state;
+                        gate.originalState = gate.lampon > 0;
+                    }
+                    else result.Add(info);
+                }
+
+                if (state != null) result.Add(state);
+
+                _wireAccelerator._connectionInfos[i] = result.ToArray();
+            }
         }
 
         private static void HitWire(DoubleStack<Point16> next, int wireType)

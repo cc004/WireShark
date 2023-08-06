@@ -87,12 +87,9 @@ namespace WireShark
             result.type = result.tile.TileType;
             return result;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        
         protected abstract void HitWireInternal();
-
-        [MethodImpl]
-
+        
         public void HitWire()
         {
             if (tile.HasActuator)

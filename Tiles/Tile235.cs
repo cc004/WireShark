@@ -7,8 +7,8 @@ public class Tile235 : TileInfo
     protected override void HitWireInternal()
     {
         {
-            var num72 = i - tile.frameX / 18;
-            if (tile.wall == 87 && j > Main.worldSurface && !NPC.downedPlantBoss)
+            var num72 = i - tile.TileFrameX / 18;
+            if (tile.WallType == 87 && j > Main.worldSurface && !NPC.downedPlantBoss)
             {
                 return;
             }

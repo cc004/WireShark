@@ -6,6 +6,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Terraria.Map;
 using Terraria.ModLoader;
 
 namespace WireShark
@@ -79,15 +80,15 @@ namespace WireShark
             for (var i = _numMechs - 1; i >= 0; i--)
             {
                 _mechTime[i]--;
-                if (Main.tile[_mechX[i], _mechY[i]].IsActive && Main.tile[_mechX[i], _mechY[i]].type == 144)
+                if (Main.tile[_mechX[i], _mechY[i]].HasTile && Main.tile[_mechX[i], _mechY[i]].TileType == 144)
                 {
-                    if (Main.tile[_mechX[i], _mechY[i]].frameY == 0)
+                    if (Main.tile[_mechX[i], _mechY[i]].TileFrameY == 0)
                     {
                         _mechTime[i] = 0;
                     }
                     else
                     {
-                        var num = Main.tile[_mechX[i], _mechY[i]].frameX / 18;
+                        var num = Main.tile[_mechX[i], _mechY[i]].TileFrameX / 18;
                         if (num == 0)
                         {
                             num = 60;
@@ -109,20 +110,20 @@ namespace WireShark
                 }
                 if (_mechTime[i] <= 0)
                 {
-                    if (Main.tile[_mechX[i], _mechY[i]].IsActive && Main.tile[_mechX[i], _mechY[i]].type == 144)
+                    if (Main.tile[_mechX[i], _mechY[i]].HasTile && Main.tile[_mechX[i], _mechY[i]].TileType == 144)
                     {
-                        Main.tile[_mechX[i], _mechY[i]].frameY = 0;
+                        Main.tile[_mechX[i], _mechY[i]].TileFrameY = 0;
 
                     }
-                    if (Main.tile[_mechX[i], _mechY[i]].IsActive && Main.tile[_mechX[i], _mechY[i]].type == 411)
+                    if (Main.tile[_mechX[i], _mechY[i]].HasTile && Main.tile[_mechX[i], _mechY[i]].TileType == 411)
                     {
                         var tile = Main.tile[_mechX[i], _mechY[i]];
-                        var num2 = tile.frameX % 36 / 18;
-                        var num3 = tile.frameY % 36 / 18;
+                        var num2 = tile.TileFrameX % 36 / 18;
+                        var num3 = tile.TileFrameY % 36 / 18;
                         var num4 = _mechX[i] - num2;
                         var num5 = _mechY[i] - num3;
                         var num6 = 36;
-                        if (Main.tile[num4, num5].frameX >= 36)
+                        if (Main.tile[num4, num5].TileFrameX >= 36)
                         {
                             num6 = -36;
                         }
@@ -130,7 +131,7 @@ namespace WireShark
                         {
                             for (var k = num5; k < num5 + 2; k++)
                             {
-                                Main.tile[j, k].frameX = (short)(Main.tile[j, k].frameX + num6);
+                                Main.tile[j, k].TileFrameX = (short)(Main.tile[j, k].TileFrameX + num6);
                             }
                         }
 
@@ -157,37 +158,37 @@ namespace WireShark
             {
                 return;
             }
-            if (Main.tile[i, j].type == 135 || Main.tile[i, j].type == 314 || Main.tile[i, j].type == 423 || Main.tile[i, j].type == 428 || Main.tile[i, j].type == 442)
+            if (Main.tile[i, j].TileType == 135 || Main.tile[i, j].TileType == 314 || Main.tile[i, j].TileType == 423 || Main.tile[i, j].TileType == 428 || Main.tile[i, j].TileType == 442)
             {
-                SoundEngine.PlaySound(SoundID.Mech, i * 16, j * 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16, j * 16));
                 BigTripWire(i, j, 1, 1);
                 return;
             }
-            if (Main.tile[i, j].type == 440)
+            if (Main.tile[i, j].TileType == 440)
             {
-                SoundEngine.PlaySound(SoundID.Mech, i * 16 + 16, j * 16 + 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16 + 16, j * 16 + 16));
                 BigTripWire(i, j, 3, 3);
                 return;
             }
-            if (Main.tile[i, j].type == 136)
+            if (Main.tile[i, j].TileType == 136)
             {
-                if (Main.tile[i, j].frameY == 0)
+                if (Main.tile[i, j].TileFrameY == 0)
                 {
-                    Main.tile[i, j].frameY = 18;
+                    Main.tile[i, j].TileFrameY = 18;
                 }
                 else
                 {
-                    Main.tile[i, j].frameY = 0;
+                    Main.tile[i, j].TileFrameY = 0;
                 }
-                SoundEngine.PlaySound(SoundID.Mech, i * 16, j * 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16, j * 16));
                 BigTripWire(i, j, 1, 1);
                 return;
             }
-            if (Main.tile[i, j].type == 144)
+            if (Main.tile[i, j].TileType == 144)
             {
-                if (Main.tile[i, j].frameY == 0)
+                if (Main.tile[i, j].TileFrameY == 0)
                 {
-                    Main.tile[i, j].frameY = 18;
+                    Main.tile[i, j].TileFrameY = 18;
                     if (Main.netMode != NetmodeID.MultiplayerClient)
                     {
                         CheckMech(i, j, 18000);
@@ -195,15 +196,15 @@ namespace WireShark
                 }
                 else
                 {
-                    Main.tile[i, j].frameY = 0;
+                    Main.tile[i, j].TileFrameY = 0;
                 }
-                SoundEngine.PlaySound(SoundID.Mech, i * 16, j * 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16, j * 16));
                 return;
             }
-            if (Main.tile[i, j].type == 441 || Main.tile[i, j].type == 468)
+            if (Main.tile[i, j].TileType == 441 || Main.tile[i, j].TileType == 468)
             {
-                var num = Main.tile[i, j].frameX / 18 * -1;
-                var num2 = Main.tile[i, j].frameY / 18 * -1;
+                var num = Main.tile[i, j].TileFrameX / 18 * -1;
+                var num2 = Main.tile[i, j].TileFrameY / 18 * -1;
                 num %= 4;
                 if (num < -1)
                 {
@@ -211,15 +212,15 @@ namespace WireShark
                 }
                 num += i;
                 num2 += j;
-                SoundEngine.PlaySound(SoundID.Mech, i * 16, j * 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16, j * 16));
                 BigTripWire(num, num2, 2, 2);
                 return;
             }
-            if (Main.tile[i, j].type == 132 || Main.tile[i, j].type == 411)
+            if (Main.tile[i, j].TileType == 132 || Main.tile[i, j].TileType == 411)
             {
                 short num3 = 36;
-                var num4 = Main.tile[i, j].frameX / 18 * -1;
-                var num5 = Main.tile[i, j].frameY / 18 * -1;
+                var num4 = Main.tile[i, j].TileFrameX / 18 * -1;
+                var num5 = Main.tile[i, j].TileFrameY / 18 * -1;
                 num4 %= 4;
                 if (num4 < -1)
                 {
@@ -228,7 +229,7 @@ namespace WireShark
                 }
                 num4 += i;
                 num5 += j;
-                if (Main.netMode != NetmodeID.MultiplayerClient && Main.tile[num4, num5].type == 411)
+                if (Main.netMode != NetmodeID.MultiplayerClient && Main.tile[num4, num5].TileType == 411)
                 {
                     CheckMech(num4, num5, 60);
                 }
@@ -236,15 +237,15 @@ namespace WireShark
                 {
                     for (var l = num5; l < num5 + 2; l++)
                     {
-                        if (Main.tile[k, l].type == 132 || Main.tile[k, l].type == 411)
+                        if (Main.tile[k, l].TileType == 132 || Main.tile[k, l].TileType == 411)
                         {
                             var tile = Main.tile[k, l];
-                            tile.frameX += num3;
+                            tile.TileFrameX += num3;
                         }
                     }
                 }
                 WorldGen.TileFrame(num4, num5, false, false);
-                SoundEngine.PlaySound(SoundID.Mech, i * 16, j * 16, 0, 1f, 0f);
+                SoundEngine.PlaySound(SoundID.Mech, new Vector2(i * 16, j * 16));
                 BigTripWire(num4, num5, 2, 2);
             }
         }
@@ -268,9 +269,9 @@ namespace WireShark
             {
                 return false;
             }
-            if ((tile.type != 226 || j <= Main.worldSurface || NPC.downedPlantBoss) && (j <= Main.worldSurface || NPC.downedGolemBoss || Main.tile[i, j - 1].type != 237))
+            if ((tile.TileType != 226 || j <= Main.worldSurface || NPC.downedPlantBoss) && (j <= Main.worldSurface || NPC.downedGolemBoss || Main.tile[i, j - 1].TileType != 237))
             {
-                if (!tile.IsActive)
+                if (!tile.HasTile)
                 {
                     ReActive(i, j);
                 }
@@ -286,7 +287,7 @@ namespace WireShark
         public static void ActuateForced(int i, int j)
         {
             var tile = Main.tile[i, j];
-            if (tile.type == 226 && j > Main.worldSurface && !NPC.downedPlantBoss)
+            if (tile.TileType == 226 && j > Main.worldSurface && !NPC.downedPlantBoss)
             {
                 return;
             }
@@ -359,11 +360,13 @@ namespace WireShark
                                 liquid = Main.tile[num, num2].LiquidType;
                                 if (flag)
                                 {
-                                    Main.tile[num3, num4].LiquidType = LiquidID.Lava;
+                                    var testTile = Main.tile[num3, num4];
+                                    testTile.LiquidType = LiquidID.Lava;
                                 }
                                 if (flag2)
                                 {
-                                    Main.tile[num3, num4].LiquidType = LiquidID.Honey;
+                                    var testTile = Main.tile[num3, num4];
+                                    testTile.LiquidType = LiquidID.Honey;
                                 }
                                 WorldGen.SquareTileFrame(num3, num4, true);
                                 if (Main.tile[num, num2].LiquidType == 0)
@@ -565,11 +568,14 @@ namespace WireShark
         private static readonly short[] frames = {-1, -1, 0, 18};
         private static void PixelBoxPass()
         {
+
             while (_wireAccelerator.boxCount > 0)
             {
                 var box = _wireAccelerator._refreshedBoxes[--_wireAccelerator.boxCount];
-                if (box.state >= PixelBox.PixelBoxState.Horizontal)
-                    box.tile.frameX = frames[(int)box.state];
+                if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 18)
+                    box.tile.TileFrameX = 0;
+                else if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 0)
+                    box.tile.TileFrameX = 18;
                 box.state = PixelBox.PixelBoxState.None;
             }
         }
@@ -769,17 +775,17 @@ namespace WireShark
             for (var j = y - 1; j > 0; --j)
             {
                 var tile2 = Main.tile[x, j];
-                if (!tile2.IsActive || tile2.type != TileID.LogicGateLamp)
+                if (!tile2.HasTile || tile2.TileType != TileID.LogicGateLamp)
                     break;
                 lampTriggers.Add(tile2);
 
-                if (tile2.frameX == 36)
+                if (tile2.TileFrameX == 36)
                     countend = true;
 
                 if (!countend)
                 {
                     lamps.Add(tile2);
-                    if (tile2.frameX == 18)
+                    if (tile2.TileFrameX == 18)
                         ++onnum;
                 }
             }
@@ -791,7 +797,7 @@ namespace WireShark
             }
             else
             {
-                switch (tile.frameY / 18)
+                switch (tile.TileFrameY / 18)
                 {
                     case 0: lgate = new AllOnGate(); break;
                     case 1: lgate = new AnyOnGate(); break;
@@ -808,11 +814,11 @@ namespace WireShark
             lgate.mapTile = tile;
             lgate.x = x;
             lgate.y = y;
-            lgate.active = tile.frameX == 18;
+            lgate.active = tile.TileFrameX == 18;
 
             for (var i = 0; i < lampTriggers.Count; ++i)
             {
-                if (i < lamps.Count || lampTriggers[i].frameX == 36)
+                if (i < lamps.Count || lampTriggers[i].TileFrameX == 36)
                     onLogicLampChange[x, y - i - 1] = lgate;
             }
         }
@@ -821,7 +827,7 @@ namespace WireShark
         {
             for (var i = 0; i < Main.maxTilesX; ++i)
             for (var j = 0; j < Main.maxTilesY; ++j)
-                if (Main.tile[i, j].IsActive && Main.tile[i, j].type == TileID.LogicGate)
+                if (Main.tile[i, j].HasTile && Main.tile[i, j].TileType == TileID.LogicGate)
                     CacheLogicGate(i, j);
         }
 
@@ -909,14 +915,18 @@ namespace WireShark
         public static void DeActive(int i, int j)
         {
             // XX: removed actuate condition
-            Main.tile[i, j].IsActuated = true;
+            var testTile = Main.tile[i, j];
+            testTile.IsActuated = true;
+
             WorldGen.SquareTileFrame(i, j, false);
         }
 
         // Token: 0x06000767 RID: 1895 RVA: 0x0035A018 File Offset: 0x00358218
         public static void ReActive(int i, int j)
         {
-            Main.tile[i, j].IsActuated = false;
+            var testTile = Main.tile[i, j];
+            testTile.IsActuated = false;
+
             WorldGen.SquareTileFrame(i, j, false);
         }
 

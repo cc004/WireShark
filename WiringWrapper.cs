@@ -789,7 +789,10 @@ namespace WireShark
                 lampTriggers.Add(tile2);
 
                 if (tile2.TileFrameX == 36)
+                {
                     countend = true;
+                    break;
+                }
 
                 if (!countend)
                 {

@@ -758,7 +758,7 @@ namespace WireShark
         private class OneErrorGate : LogicGate
         {
             public bool originalState;
-            public WireState state;
+            public List<WireState> state = new List<WireState>();
             
             protected override bool GetState()
             {
@@ -767,8 +767,9 @@ namespace WireShark
 
             public override void UpdateLogicGate()
             {
-                if (state.state ^ originalState)
-                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.Enqueue(new Point16(x, y));
+                var t = originalState;
+                foreach (var state in this.state) t ^= state.state;
+                if (t) if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.Enqueue(new Point16(x, y));
             }
 
         }
@@ -842,6 +843,8 @@ namespace WireShark
                 if (Main.tile[i, j].HasTile && Main.tile[i, j].TileType == TileID.LogicGate)
                     CacheLogicGate(i, j);
 
+            var lampClearing = new List<Point16>();
+
             for (int i = 0; i < _wireAccelerator._connectionInfos.Length; ++i)
             {
                 var result = new List<TileInfo>();
@@ -851,19 +854,26 @@ namespace WireShark
                 {
                     if (info is Tile419 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
                     {
-                        state ??= new WireState {i = info.i, j = info.j, tile = info.tile};
-                        gate.state = state;
                         gate.originalState = gate.lampon > 0;
                         if (info.tile.TileFrameX != 36)
-                            onLogicLampChange[info.i, info.j] = null;
-                        else result.Add(info);
+                        {
+                            state ??= new WireState { i = info.i, j = info.j, tile = info.tile };
+                            gate.state.Add(state);
+                            lampClearing.Add(new (info.i, info.j));
+                            continue;
+                        }
                     }
-                    else result.Add(info);
+                    result.Add(info);
                 }
 
                 if (state != null) result.Add(state);
 
                 _wireAccelerator._connectionInfos[i] = result.ToArray();
+            }
+
+            foreach (var pnt in lampClearing)
+            {
+                onLogicLampChange[pnt.X, pnt.Y] = null;
             }
         }
 

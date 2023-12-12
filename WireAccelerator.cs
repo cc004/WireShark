@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +20,7 @@ using static System.Threading.Thread;
 using static WireShark.WiringWrapper;
 
 namespace WireShark {
-    public class WireAccelerator
+    public static unsafe class WireAccelerator
     {
         private static readonly HashSet<int> _sourceTable = new HashSet<int>() {
             135, 314, 428, 442, 440, 136, 144, 441, 468, 132, 411, TileID.LogicGate, TileID.LogicSensor
@@ -37,10 +39,10 @@ namespace WireShark {
         // D, U, R, L
         private static readonly int[] dx = { 0, 0, 1, -1 };
         private static readonly int[] dy = { 1, -1, 0, 0 };
-        public TileInfo[][] _connectionInfos;
-        private int[,,] _inputConnectedCompoents;
+        public static TileInfo[][] _connectionInfos;
+        private static int[,,] _inputConnectedCompoents;
 
-        private byte GetWireID(int X, int Y) {
+        private static byte GetWireID(int X, int Y) {
             var tile = Main.tile[X, Y];
             if (tile == null) return 0;
             byte mask = 0;
@@ -51,30 +53,32 @@ namespace WireShark {
             return mask;
         }
         
-        private int[] visited;
-        private int now_number;
+        private static int* visited = (int *) IntPtr.Zero;
+        private static int now_number;
 
-        public void ResetVisited()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ResetVisited()
         {
             ++now_number;
         }
 
-        internal static Point16 triggeredBy;
+        // internal static Point16 triggeredBy;
 
-        public void Activiate(int x, int y, int wire)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static void Activate(int x, int y, int wire)
         {
-            int wireid = _wireCache[x, y];
-            if (wireid == 0) return;
-            if (((wireid >> wire) & 1) == 0) return;
+            // if (((_wireCache[x, y] >> wire) & 1) == 0) return;
             var id = _inputConnectedCompoents[x, y, wire];
             if (id == -1 || visited[id] == now_number) return;
             var info = _connectionInfos[id];
-            triggeredBy = new Point16(x, y);
-            foreach (var tile in info) {
-                //File.AppendAllText("wire.log",$"logic gate {triggeredBy} triggers tile {tile}\n");
+            // triggeredBy = new Point16(x, y);
+            for (int k = 0; k < info.Length; ++k)
+            {
+                var tile = info[k];
                 if (tile.i != x || tile.j != y)
                     tile.HitWire();
             }
+
             visited[id] = now_number;
         }
 
@@ -111,12 +115,12 @@ namespace WireShark {
             }
         }
 
-        private int[,,] _visIndexCache;
-        private byte[,] _wireCache;
-        private TileInfo[,] _tileCache;
+        private static int[,,] _visIndexCache;
+        private static byte[,] _wireCache;
+        private static TileInfo[,] _tileCache;
         internal static bool noWireOrder = true;
 
-        public void Preprocess() {
+        public static void Preprocess() {
             _inputConnectedCompoents = new int[Main.maxTilesX, Main.maxTilesY, 4];
             _boxes = new ();
             _pixelBoxMap = new();
@@ -152,6 +156,8 @@ namespace WireShark {
                         }
                     }
                 }
+
+                if (i % 100 == 0) Main.statusText = $"preprocess initializing {i * 1f / Main.maxTilesX:P1}";
             }
 
             var count = 0;
@@ -176,6 +182,8 @@ namespace WireShark {
 
                     }
                 }
+
+                if (j % 100 == 0) Main.statusText = $"generating tasks {j * 1f / Main.maxTilesY:P1}";
             }
 
             _connectionInfos = new TileInfo[count][];
@@ -200,7 +208,9 @@ namespace WireShark {
 
             _tileCache = null;
             _pixelBoxMap = null;
-            visited = new int[count];
+
+            if ((IntPtr) visited != IntPtr.Zero) Marshal.FreeHGlobal((IntPtr) visited);
+            visited = (int *) Marshal.AllocHGlobal(sizeof(int) * count);
             now_number = 1;
 
             foreach (var r in disposing)
@@ -296,7 +306,7 @@ namespace WireShark {
             return false;
         }
 
-        private int GetWireBoxIndex2(Tile tile, int dir, int i) {
+        private static int GetWireBoxIndex2(Tile tile, int dir, int i) {
             var frame = tile.TileFrameX / 18;
             if (frame == 0) {
                 if (i != dir) return 0;
@@ -317,7 +327,7 @@ namespace WireShark {
             }
         }
 
-        private int GetWireBoxIndex(Tile tile, int dir) {
+        private static int GetWireBoxIndex(Tile tile, int dir) {
             var frame = tile.TileFrameX / 18;
             if (frame == 0) {
                 if (dir == 0 || dir == 1) return 1;
@@ -331,13 +341,13 @@ namespace WireShark {
             }
         }
 
-        public List<PixelBox> _boxes;
-        public PixelBox[] _refreshedBoxes;
-        public int boxCount = 0;
-        private Dictionary<Point16, PixelBox> _pixelBoxMap;
+        public static List<PixelBox> _boxes;
+        public static PixelBox[] _refreshedBoxes;
+        public static int boxCount = 0;
+        private static Dictionary<Point16, PixelBox> _pixelBoxMap;
         internal static int threadCount = 1;
 
-        private TileInfo[] BFSWires(int[,,,] _vis, int id, int wireid, int x, int y) {
+        private static TileInfo[] BFSWires(int[,,,] _vis, int id, int wireid, int x, int y) {
             var Q = new Queue<Node>();
             Q.Enqueue(new Node(x, y, 0));
             var outputs = new List<TileInfo>();

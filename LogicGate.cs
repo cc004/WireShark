@@ -33,11 +33,12 @@ namespace WireShark
             this.tile = box.tile;
             this.i = i;
             this.j = j;
+            this.hash = ((long) i << 32) + j;
         }
         protected override void HitWireInternal()
         {
             if (box.state == PixelBox.PixelBoxState.None)
-                WiringWrapper._wireAccelerator._refreshedBoxes[WiringWrapper._wireAccelerator.boxCount++] = box;
+                WireAccelerator._refreshedBoxes[WireAccelerator.boxCount++] = box;
         }
     }
 
@@ -70,25 +71,10 @@ namespace WireShark
     internal abstract class LogicGate
     {
         public int lampon, x, y;
-        public bool active;
         public Tile mapTile;
         public int lamptotal;
         public bool erroronly = false;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected abstract bool GetState();
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual void UpdateLogicGate()
-        {
-            var cur = GetState();
-            //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
-            if (active ^ cur)
-            {
-                active = cur;
-                mapTile.TileFrameX = (short)(cur ? 18 : 0);
-                if (WiringWrapper._GatesDone[x, y] != WiringWrapper.cur_gatesdone) WiringWrapper._GatesNext.Enqueue(new Point16(x, y));
-            }
-        }
+        public abstract void UpdateLogicGate();
     }
 }

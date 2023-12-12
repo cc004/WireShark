@@ -22,6 +22,7 @@ namespace WireShark
         [DefaultValue(1)]
         public int ThreadCount { get; set; }
 
+
         [Label("No Order in Wires")]
         [Tooltip("If the order on the same wire counts, enable it will increase preprocessing speed, but the circuit may be slightly different from vanilla logic")]
         [DefaultValue(true)]

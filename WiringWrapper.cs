@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
 using log4net.Core;
 using Microsoft.Xna.Framework;
 using Terraria;
@@ -12,10 +17,10 @@ using WireShark.Tiles;
 
 namespace WireShark
 {
-    public static class WiringWrapper
+    public static unsafe class WiringWrapper
     {
 
-        public static WireAccelerator _wireAccelerator;
+        // public static WireAccelerator _wireAccelerator;
 
         // Token: 0x06000753 RID: 1875 RVA: 0x0035517C File Offset: 0x0035337C
         public static void SetCurrentUser(int plr = -1)
@@ -35,13 +40,13 @@ namespace WireShark
         public static void Initialize()
         {
             onLogicLampChange = new LogicGate[Main.maxTilesX, Main.maxTilesY];
-            _wireAccelerator = new WireAccelerator();
-            _wireList = new DoubleStack<Point16>(1024, 0);
-            _wireDirectionList = new DoubleStack<byte>(1024, 0);
+            // _wireAccelerator = new WireAccelerator();
+            _wireList = new QuickLinkedList<Point16>();
+            // _wireDirectionList = new DoubleStack<byte>(1024, 0);
             _toProcess = new Dictionary<Point16, byte>();
-            _GatesCurrent = new Queue<Point16>();
-            _GatesNext = new Queue<Point16>();
-            _LampsToCheck = new Queue<LogicGate>();
+            _GatesCurrent = new QuickLinkedList<Point16>();
+            _GatesNext = new QuickLinkedList<Point16>();
+            _LampsToCheck = new QuickLinkedList<LogicGate>();
             _inPumpX = new int[20];
             _inPumpY = new int[20];
             _outPumpX = new int[20];
@@ -55,9 +60,9 @@ namespace WireShark
         public static void Unload()
         {
             onLogicLampChange = null;
-            _wireAccelerator = null;
+            // _wireAccelerator = null;
             _wireList = null;
-            _wireDirectionList = null;
+            // _wireDirectionList = null;
             _toProcess = null;
             _GatesCurrent = null;
             _GatesNext = null;
@@ -258,7 +263,7 @@ namespace WireShark
             {
                 return;
             }
-            _LampsToCheck.Enqueue(onLogicLampChange[lampX, lampY]);
+            _LampsToCheck.AddLast(onLogicLampChange[lampX, lampY]);
             LogicGatePass();
         }
 
@@ -394,6 +399,7 @@ namespace WireShark
             LogicGatePass();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void TripWireWithLogicVanilla(int l, int t, int w, int h)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
@@ -402,7 +408,7 @@ namespace WireShark
             }
             TripWire(l, t, w, h);
             PixelBoxPass();
-            LogicGatePass();
+            LogicGatePassVanilla();
         }
 
         public static void BigTripWire(int l, int t, int w, int h)
@@ -416,163 +422,170 @@ namespace WireShark
             LogicGatePass();
         }
 
-        // Token: 0x0600075F RID: 1887 RVA: 0x00355E08 File Offset: 0x00354008
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void TripWire(int left, int top, int width, int height)
         {
             Wiring.running = true;
             // 清除队列
-            if (_wireList.Count != 0)
-            {
-                _wireList.Clear(true);
-            }
-            if (_wireDirectionList.Count != 0)
-            {
-                _wireDirectionList.Clear(true);
-            }
-            var array = new Vector2[8];
+            _wireList.Clear();
+            // _wireDirectionList.Clear(true);
+
+            var array = stackalloc Vector2[8];
             var num = 0;
 
-
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            for (var m = left; m < left + width; m++)
+            fixed (Vector2* _teleport = WiringWrapper._teleport)
             {
-                for (var n = top; n < top + height; n++)
-                {
-                    var back3 = new Point16(m, n);
-                    var tile3 = Main.tile[m, n];
-                    if (tile3 != null && tile3.RedWire)
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+                for (var m = left; m < left + width; m++)
+                {   
+                    for (var n = top; n < top + height; n++)
                     {
-                        _wireList.PushBack(back3);
+                        var tile3 = Main.tile[m, n];
+                        if (tile3 != null && tile3.RedWire)
+                        {
+                            var back3 = new Point16(m, n);
+                            _wireList.AddLast(back3);
+                        }
                     }
                 }
-            }
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 3);
-                if (_numInPump > 0 && _numOutPump > 0)
+
+                if (_wireList.Count > 0)
                 {
-                    XferWater();
-                }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
-
-
-
-            for (var i = left; i < left + width; i++)
-            {
-                for (var j = top; j < top + height; j++)
-                {
-                    var back = new Point16(i, j);
-                    var tile = Main.tile[i, j];
-                    if (tile != null && tile.BlueWire)
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    HitWire(2);
+                    if (_numInPump > 0 && _numOutPump > 0)
                     {
-                        _wireList.PushBack(back);
+                        XferWater();
                     }
                 }
-            }
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 1);
-                if (_numInPump > 0 && _numOutPump > 0)
-                {
-                    XferWater();
-                }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
+
+                array[0] = _teleport[0];
+                array[1] = _teleport[1];
 
 
-            for (var k = left; k < left + width; k++)
-            {
-                for (var l = top; l < top + height; l++)
+
+                for (var i = left; i < left + width; i++)
                 {
-                    var back2 = new Point16(k, l);
-                    var tile2 = Main.tile[k, l];
-                    if (tile2 != null && tile2.GreenWire)
+                    for (var j = top; j < top + height; j++)
                     {
-                        _wireList.PushBack(back2);
+                        var tile = Main.tile[i, j];
+                        if (tile != null && tile.BlueWire)
+                        {
+                            var back = new Point16(i, j);
+                            _wireList.AddLast(back);
+                        }
                     }
                 }
-            }
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 2);
-                if (_numInPump > 0 && _numOutPump > 0)
-                {
-                    XferWater();
-                }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
 
-            _teleport[0].X = -1f;
-            _teleport[0].Y = -1f;
-            _teleport[1].X = -1f;
-            _teleport[1].Y = -1f;
-            for (var num2 = left; num2 < left + width; num2++)
-            {
-                for (var num3 = top; num3 < top + height; num3++)
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+                if (_wireList.Count > 0)
                 {
-                    var back4 = new Point16(num2, num3);
-                    var tile4 = Main.tile[num2, num3];
-                    if (tile4 != null && tile4.YellowWire)
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    HitWire(0);
+                    if (_numInPump > 0 && _numOutPump > 0)
                     {
-                        _wireList.PushBack(back4);
+                        XferWater();
                     }
                 }
-            }
-            if (_wireList.Count > 0)
-            {
-                _numInPump = 0;
-                _numOutPump = 0;
-                HitWire(_wireList, 4);
-                if (_numInPump > 0 && _numOutPump > 0)
+
+                array[2] = _teleport[0];
+                array[3] = _teleport[1];
+
+
+                for (var k = left; k < left + width; k++)
                 {
-                    XferWater();
+                    for (var l = top; l < top + height; l++)
+                    {
+                        var tile2 = Main.tile[k, l];
+                        if (tile2 != null && tile2.GreenWire)
+                        {
+                            var back2 = new Point16(k, l);
+                            _wireList.AddLast(back2);
+                        }
+                    }
                 }
-            }
-            array[num++] = _teleport[0];
-            array[num++] = _teleport[1];
 
-
-            for (var num4 = 0; num4 < 8; num4 += 2)
-            {
-                _teleport[0] = array[num4];
-                _teleport[1] = array[num4 + 1];
-                if (_teleport[0].X >= 0f && _teleport[1].X >= 0f)
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+                if (_wireList.Count > 0)
                 {
-                    Teleport();
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    HitWire(1);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
                 }
-            }
 
+                array[4] = _teleport[0];
+                array[5] = _teleport[1];
+
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+                for (var num2 = left; num2 < left + width; num2++)
+                {
+                    for (var num3 = top; num3 < top + height; num3++)
+                    {
+                        var tile4 = Main.tile[num2, num3];
+                        if (tile4 != null && tile4.YellowWire)
+                        {
+                            var back4 = new Point16(num2, num3);
+                            _wireList.AddLast(back4);
+                        }
+                    }
+                }
+
+                if (_wireList.Count > 0)
+                {
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    HitWire(3);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
+                }
+
+                array[6] = _teleport[0];
+                array[7] = _teleport[1];
+
+
+                for (var num4 = 0; num4 < 8; num4 += 2)
+                {
+                    _teleport[0] = array[num4];
+                    _teleport[1] = array[num4 + 1];
+                    if (_teleport[0].X >= 0f && _teleport[1].Y >= 0f)
+                    {
+                        Teleport();
+                    }
+                }
+
+            }
         }
 
         // Token: 0x06000760 RID: 1888 RVA: 0x00356308 File Offset: 0x00354508
         private static readonly short[] frames = {-1, -1, 0, 18};
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void PixelBoxPass()
         {
 
-            while (_wireAccelerator.boxCount > 0)
+            while (WireAccelerator.boxCount > 0)
             {
-                var box = _wireAccelerator._refreshedBoxes[--_wireAccelerator.boxCount];
+                var box = WireAccelerator._refreshedBoxes[--WireAccelerator.boxCount];
                 if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 18)
                     box.tile.TileFrameX = 0;
                 else if (box.state.HasFlag(PixelBox.PixelBoxState.Vertical) && box.state.HasFlag(PixelBox.PixelBoxState.Horizontal) && box.tile.TileFrameX == 0)
@@ -599,34 +612,49 @@ namespace WireShark
                 Clear_Gates();
                 while (_LampsToCheck.Count > 0)
                 {
+                    for (int i = 0; i < _LampsToCheck.Count; ++i)
+                    {
+                        _LampsToCheck.cachePtr[i].UpdateLogicGate();
+                    }
+                    _LampsToCheck.Clear();
+                    /*
                     while (_LampsToCheck.Count > 0)
                     {
                         _LampsToCheck.Dequeue().UpdateLogicGate();
-                        /*
-                        Point16 point = ;
-                        CheckLogicGate((int)point.X, (int)point.Y);*/
-                    }
+                        
+                        // Point16 point = ;
+                       //  CheckLogicGate((int)point.X, (int)point.Y);
+                    } */
+
                     //if (_GatesNext.Count > 0)
                     //    Main.NewText($"gate counts to check = {_GatesNext.Count}");
                     while (_GatesNext.Count > 0)
                     {
-                        Utils.Swap<Queue<Point16>>(ref _GatesCurrent, ref _GatesNext);
+                        Utils.Swap(ref _GatesCurrent, ref _GatesNext);
+                        for (int i = 0; i < _GatesCurrent.Count; ++i)
+                        {
+                            var key = _GatesCurrent.cachePtr[i];
+                            if (_GatesDone[key.X, key.Y] != cur_gatesdone)
+                            {
+                                _GatesDone[key.X, key.Y] = cur_gatesdone;
+                                TripWireWithLogicVanilla(key.X, key.Y, 1, 1);
+                            }
+                        }
+                        _GatesCurrent.Clear();
+                        /*
                         while (_GatesCurrent.Count > 0)
                         {
                             var key = _GatesCurrent.Peek();
-                            if (_GatesDone[key.X, key.Y] == cur_gatesdone)
-                            {
-                                _GatesCurrent.Dequeue();
-                            }
-                            else
+                            if (_GatesDone[key.X, key.Y] != cur_gatesdone)
                             {
                                 _GatesDone[key.X, key.Y] = cur_gatesdone;
-                                TripWireWithLogic(key.X, key.Y, 1, 1);
-                                _GatesCurrent.Dequeue();
+                                TripWireWithLogicVanilla(key.X, key.Y, 1, 1);
                             }
-                        }
+                            _GatesCurrent.Dequeue();
+                        }*/
                     }
                 }
+
                 Clear_Gates();
                 if (Wiring.blockPlayerTeleportationForOneIteration)
                 {
@@ -641,30 +669,34 @@ namespace WireShark
                 Clear_Gates();
                 while (_LampsToCheck.Count > 0)
                 {
+                    for (int i = 0; i < _LampsToCheck.Count; ++i)
+                    {
+                        _LampsToCheck.cachePtr[i].UpdateLogicGate();
+                    }
+                    _LampsToCheck.Clear();
+
+                    /*
                     while (_LampsToCheck.Count > 0)
                     {
                         _LampsToCheck.Dequeue().UpdateLogicGate();
-                        /*
-                        Point16 point = ;
-                        CheckLogicGate((int)point.X, (int)point.Y);*/
-                    }
+                        
+                        // Point16 point = ;
+                        // CheckLogicGate((int)point.X, (int)point.Y);
+                    }*/
+
                     while (_GatesNext.Count > 0)
                     {
-                        Utils.Swap<Queue<Point16>>(ref _GatesCurrent, ref _GatesNext);
-                        while (_GatesCurrent.Count > 0)
+                        Utils.Swap(ref _GatesCurrent, ref _GatesNext);
+                        for (int i = 0; i < _GatesCurrent.Count; ++i)
                         {
-                            var key = _GatesCurrent.Peek();
-                            if (_GatesDone[key.X, key.Y] == cur_gatesdone)
-                            {
-                                _GatesCurrent.Dequeue();
-                            }
-                            else
+                            var key = _GatesCurrent.cachePtr[i];
+                            if (_GatesDone[key.X, key.Y] != cur_gatesdone)
                             {
                                 _GatesDone[key.X, key.Y] = cur_gatesdone;
-                                TripWireWithLogic(key.X, key.Y, 1, 1);
-                                _GatesCurrent.Dequeue();
+                                TripWireWithLogicVanilla(key.X, key.Y, 1, 1);
                             }
                         }
+                        _GatesCurrent.Clear();
                         PixelBoxPass();
                     }
                 }
@@ -680,59 +712,90 @@ namespace WireShark
 
         private class AllOnGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon == lamptotal;
+                var cur = lampon == lamptotal;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class AnyOnGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon > 0;
+                var cur = lampon > 0;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class AnyOffGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon != lamptotal;
+                var cur = lampon != lamptotal;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class AllOffGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon == 0;
+                var cur = lampon == 0;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class OneOnGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon == 1;
+                var cur = lampon == 1;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class NotOneOnGate : LogicGate
         {
-            protected override bool GetState()
+            public override void UpdateLogicGate()
             {
-                return lampon != 1;
+                var cur = lampon != 1;
+                //Main.NewText($"update {GetType().Name} => {active} to {cur}, {lampon} / {lamptotal} @({x}, {y})");
+                if ((mapTile.TileFrameX == 18) ^ cur)
+                {
+                    mapTile.TileFrameX = (short)(18 - mapTile.TileFrameX);
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
+                }
             }
         }
 
         private class ErrorGate : LogicGate
         {
-            protected override bool GetState()
-            {
-                throw new NotImplementedException();
-            }
-
             public ErrorGate()
             {
                 erroronly = true;
@@ -741,7 +804,7 @@ namespace WireShark
             public override void UpdateLogicGate()
             {
                 if (Main.rand.NextDouble() * lamptotal < lampon)
-                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.Enqueue(new Point16(x, y));
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
             }
 
         }
@@ -755,21 +818,22 @@ namespace WireShark
             }
         }
 
-        private class OneErrorGate : LogicGate
+        private unsafe class OneErrorGate : LogicGate
         {
             public bool originalState;
-            public List<WireState> state = new List<WireState>();
-            
-            protected override bool GetState()
-            {
-                throw new NotImplementedException();
-            }
 
+            public WireState state1, state2, state3, state4;
+            public static WireState alwaysFalse = new WireState {state = false};
+
+            public OneErrorGate()
+            {
+                state1 = state2 = state3 = state4 = alwaysFalse;
+            }
+            
             public override void UpdateLogicGate()
             {
-                var t = originalState;
-                foreach (var state in this.state) t ^= state.state;
-                if (t) if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.Enqueue(new Point16(x, y));
+                if (originalState ^ state1.state ^ state2.state ^ state3.state ^ state4.state)
+                    if (_GatesDone[x, y] != cur_gatesdone) _GatesNext.AddLast(new Point16(x, y));
             }
 
         }
@@ -787,12 +851,13 @@ namespace WireShark
                 var tile2 = Main.tile[x, j];
                 if (!tile2.HasTile || tile2.TileType != TileID.LogicGateLamp)
                     break;
+
                 lampTriggers.Add(tile2);
 
                 if (tile2.TileFrameX == 36)
                 {
                     countend = true;
-                    break;
+                    // break;
                 }
 
                 if (!countend)
@@ -827,7 +892,6 @@ namespace WireShark
             lgate.mapTile = tile;
             lgate.x = x;
             lgate.y = y;
-            lgate.active = tile.TileFrameX == 18;
 
             for (var i = 0; i < lampTriggers.Count; ++i)
             {
@@ -838,56 +902,131 @@ namespace WireShark
 
         public static void Initialize_LogicLamps()
         {
+
             for (var i = 0; i < Main.maxTilesX; ++i)
-            for (var j = 0; j < Main.maxTilesY; ++j)
-                if (Main.tile[i, j].HasTile && Main.tile[i, j].TileType == TileID.LogicGate)
-                    CacheLogicGate(i, j);
 
-            var lampClearing = new List<Point16>();
-
-            for (int i = 0; i < _wireAccelerator._connectionInfos.Length; ++i)
             {
-                var result = new List<TileInfo>();
-                WireState state = null;
-
-                foreach (var info in _wireAccelerator._connectionInfos[i])
+                for (var j = 0; j < Main.maxTilesY; ++j)
                 {
-                    if (info is Tile419 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
-                    {
-                        gate.originalState = gate.lampon > 0;
-                        if (info.tile.TileFrameX != 36)
-                        {
-                            state ??= new WireState { i = info.i, j = info.j, tile = info.tile };
-                            gate.state.Add(state);
-                            lampClearing.Add(new (info.i, info.j));
-                            continue;
-                        }
-                    }
-                    result.Add(info);
+                    if (Main.tile[i, j].HasTile && Main.tile[i, j].TileType == TileID.LogicGate)
+                        CacheLogicGate(i, j);
+
                 }
 
-                if (state != null) result.Add(state);
-
-                _wireAccelerator._connectionInfos[i] = result.ToArray();
+                if (i % 100 == 0) Main.statusText = $"processing logic gates {i * 1f / Main.maxTilesX:P1}";
             }
 
-            foreach (var pnt in lampClearing)
+            var lampClearing = new bool[Main.maxTilesX, Main.maxTilesY];
+
+            /*
+            tasks.AsParallel().WithDegreeOfParallelism(threadCount).ForAll(task =>
             {
-                onLogicLampChange[pnt.X, pnt.Y] = null;
+                if (noWireOrder && _vis[task.Item3, task.Item4, task.Item2, 0] != -1)
+                    _connectionInfos[task.Item1] = _connectionInfos[_vis[task.Item3, task.Item4, task.Item2, 0]];
+                else
+                    _connectionInfos[task.Item1] = BFSWires(_vis, task.Item1, task.Item2, task.Item3, task.Item4);
+            });*/
+
+            var uniqueConnection = WireAccelerator._connectionInfos.ToHashSet()
+                .ToDictionary(arr => arr, arr =>
+                {
+                    var result = new List<TileInfo>();
+                    WireState state = null;
+
+                    foreach (var info in arr)
+                    {
+                        if (info is Tile419 && onLogicLampChange[info.i, info.j] is OneErrorGate gate)
+                        {
+                            gate.originalState = gate.lampon > 0;
+                            if (info.tile.TileFrameX != 36)
+                            {
+                                state ??= new WireState {i = info.i, j = info.j, tile = info.tile, hash = ((long) info.i << 32) + info.j};
+
+                                lock (gate)
+                                {
+                                    if (gate.state1 == OneErrorGate.alwaysFalse) gate.state1 = state;
+                                    else if (gate.state2 == OneErrorGate.alwaysFalse) gate.state2 = state;
+                                    else if (gate.state3 == OneErrorGate.alwaysFalse) gate.state3 = state;
+                                    else if (gate.state4 == OneErrorGate.alwaysFalse) gate.state4 = state;
+                                    else throw new InvalidOperationException();
+                                }
+
+                                lampClearing[info.i, info.j] = true;
+                                continue;
+                            }
+                        }
+
+                        result.Add(info);
+                    }
+
+                    if (state != null) result.Add(state);
+                    return result.ToArray();
+                });
+
+            for (var i = 0; i < Main.maxTilesX; ++i)
+            {
+                for (var j = 0; j < Main.maxTilesY; ++j)
+                {
+                    if (lampClearing[i, j]) onLogicLampChange[i, j] = null;
+                }
+
+                if (i % 100 == 0) Main.statusText = $"clearing redundant logic cache {i * 1f / Main.maxTilesX:P1}";
             }
+
+            var p = 0;
+
+            foreach (var arr in uniqueConnection.Values)
+            {
+                for (int i = 0; i < arr.Length; ++i)
+                {
+                    if (arr[i] is Tile419)
+                    {
+                        var lgate = onLogicLampChange[arr[i].i, arr[i].j];
+                        Tile419 newTile;
+                        if (lgate == null)
+                        {
+                            if (arr[i].tile.TileFrameX == 36) newTile = new Tile419ErrorUnconnected();
+                            else newTile = new Tile419NormalUnconnected();
+                        }
+                        else
+                        {
+                            if (arr[i].tile.TileFrameX == 36) newTile = new Tile419Error();
+                            else if (lgate.erroronly) newTile = new Tile419NormalOnError();
+                            else newTile = new Tile419Normal();
+                        }
+
+                        newTile.i = arr[i].i;
+                        newTile.j = arr[i].j;
+                        newTile.hash = arr[i].hash;
+                        newTile.tile = arr[i].tile;
+                        newTile.lgate = lgate;
+
+                        arr[i] = newTile;
+                    }
+                }
+
+                if ((++p) % 100 == 0) Main.statusText = $"optimizing logic lamps {p * 1f / uniqueConnection.Count:P1}";
+            }
+
+            for (int i = 0; i < WireAccelerator._connectionInfos.Length; ++i)
+            {
+                WireAccelerator._connectionInfos[i] = uniqueConnection[WireAccelerator._connectionInfos[i]];
+            }
+
         }
 
-        private static void HitWire(DoubleStack<Point16> next, int wireType)
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+        private static void HitWire(int wireType)
         {
-            _wireDirectionList.Clear(true);
-            _wireAccelerator.ResetVisited();
-            for (var i = 0; i < next.Count; i++)
+            // _wireDirectionList.Clear(true);
+            WireAccelerator.ResetVisited();
+            for (var i = 0; i < _wireList.Count; i++)
             {
-                var point = next.PopFront();
-                _wireAccelerator.Activiate(point.X, point.Y, wireType - 1);
+                var point = _wireList.cachePtr[i];
+                WireAccelerator.Activate(point.X, point.Y, wireType);
             }
 
-            _currentWireColor = wireType;
+            _currentWireColor = wireType + 1;
             Wiring.running = false;
         }
         
@@ -977,7 +1116,7 @@ namespace WireShark
         }
 
         // Token: 0x04000C71 RID: 3185
-        public static DoubleStack<Point16> _wireList;
+        internal static QuickLinkedList<Point16> _wireList;
 
         // Token: 0x04000C72 RID: 3186
         public static DoubleStack<byte> _wireDirectionList;
@@ -986,13 +1125,13 @@ namespace WireShark
         public static Dictionary<Point16, byte> _toProcess;
 
         // Token: 0x04000C74 RID: 3188
-        private static Queue<Point16> _GatesCurrent;
+        private static QuickLinkedList<Point16> _GatesCurrent;
 
         // Token: 0x04000C75 RID: 3189
-        internal static Queue<LogicGate> _LampsToCheck;
+        internal static QuickLinkedList<LogicGate> _LampsToCheck;
 
         // Token: 0x04000C76 RID: 3190
-        public static Queue<Point16> _GatesNext;
+        internal static QuickLinkedList<Point16> _GatesNext;
 
         // Token: 0x04000C77 RID: 3191
         internal static int[,] _GatesDone;
@@ -1004,6 +1143,7 @@ namespace WireShark
             cur_gatesdone = 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Clear_Gates()
         {
             ++cur_gatesdone;

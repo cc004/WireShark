@@ -8,7 +8,7 @@ namespace WireShark {
         private static void Preprocess()
         {
             WiringWrapper.Initialize();
-            WiringWrapper._wireAccelerator.Preprocess();
+            WireAccelerator.Preprocess();
             WiringWrapper.Initialize_GatesDone();
             WiringWrapper.Initialize_LogicLamps();
         }

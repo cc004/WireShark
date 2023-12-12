@@ -41,6 +41,7 @@ namespace WireShark
         }
 
         public int i, j;
+        public long hash;
 
         public ushort type 
         { 
@@ -84,12 +85,13 @@ namespace WireShark
             result.tile = Main.tile[x, y];
             result.i = x;
             result.j = y;
-            result.type = result.tile.TileType;
+            result.hash = ((long) x << 32) + y;
             return result;
         }
         
         protected abstract void HitWireInternal();
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void HitWire()
         {
             if (tile.HasActuator)

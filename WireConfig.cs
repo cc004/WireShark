@@ -12,11 +12,6 @@ namespace WireShark
     {
         public override ConfigScope Mode => ConfigScope.ServerSide;
 
-        [Label("Use Vanilla Pixel Box Logic")]
-        [Tooltip("Pixel box will act as vanilla terraria and its pass will be run once a gate is done.")]
-        [DefaultValue(true)]
-        public bool UseVanillaPixelBoxLogic { get; set; }
-
         [Label("Parallel thread counts")]
         [Tooltip("Set to 1 if there are bugs, higher value requests more memory when preprocessing. Only Avaliable when No Order in Wires is set to false")]
         [DefaultValue(1)]
@@ -30,7 +25,6 @@ namespace WireShark
 
         public override void OnChanged()
         {
-            WiringWrapper.SetPixelBoxBehaviour(UseVanillaPixelBoxLogic);
             WireAccelerator.threadCount = NoWireOrder ? 1 : ThreadCount;
             WireAccelerator.noWireOrder = NoWireOrder;
         }

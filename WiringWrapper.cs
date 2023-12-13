@@ -11,6 +11,7 @@ using Terraria;
 using Terraria.Audio;
 using Terraria.DataStructures;
 using Terraria.ID;
+using Terraria.IO;
 using Terraria.Map;
 using Terraria.ModLoader;
 using WireShark.Tiles;
@@ -264,7 +265,7 @@ namespace WireShark
                 return;
             }
             _LampsToCheck.AddLast(onLogicLampChange[lampX, lampY]);
-            LogicGatePass();
+            LogicGatePassVanilla();
         }
 
         // Token: 0x0600075A RID: 1882 RVA: 0x003559C0 File Offset: 0x00353BC0
@@ -389,24 +390,14 @@ namespace WireShark
             }
         }
 
-        public static void TripWireWithLogicAdvanced(int l, int t, int w, int h)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public static void TripWireWithLogicVanillaSingle(int l, int t)
         {
             if (Main.netMode == NetmodeID.MultiplayerClient)
             {
                 return;
             }
-            TripWire(l, t, w, h);
-            LogicGatePass();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void TripWireWithLogicVanilla(int l, int t, int w, int h)
-        {
-            if (Main.netMode == NetmodeID.MultiplayerClient)
-            {
-                return;
-            }
-            TripWire(l, t, w, h);
+            TripWireSingle(l, t);
             PixelBoxPass();
             LogicGatePassVanilla();
         }
@@ -417,9 +408,12 @@ namespace WireShark
             {
                 return;
             }
-            TripWire(l, t, w, h);
+            if (w == 1 && h == 1)
+                TripWireSingle(l, t);
+            else
+                TripWire(l, t, w, h);
             PixelBoxPass();
-            LogicGatePass();
+            LogicGatePassVanilla();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -440,7 +434,7 @@ namespace WireShark
                 _teleport[1].X = -1f;
                 _teleport[1].Y = -1f;
                 for (var m = left; m < left + width; m++)
-                {   
+                {
                     for (var n = top; n < top + height; n++)
                     {
                         var tile3 = Main.tile[m, n];
@@ -567,7 +561,119 @@ namespace WireShark
                 {
                     _teleport[0] = array[num4];
                     _teleport[1] = array[num4 + 1];
-                    if (_teleport[0].X >= 0f && _teleport[1].Y >= 0f)
+                    if (_teleport[0].X >= 0f && _teleport[1].X >= 0f)
+                    {
+                        Teleport();
+                    }
+                }
+
+            }
+        }
+
+        // 优化方向：根据tile emit代码
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        private static void TripWireSingle(int left, int top)
+        {
+
+            Wiring.running = true;
+            // 清除队列
+            _wireList.Clear();
+            // _wireDirectionList.Clear(true);
+
+            var array = stackalloc Vector2[8];
+            var num = 0;
+
+            fixed (Vector2* _teleport = WiringWrapper._teleport)
+            {
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+
+                var tile3 = Main.tile[left, top];
+                if (tile3 != null && tile3.RedWire)
+                {
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    WireAccelerator.Activate(left, top, 2);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
+                }
+
+                array[0] = _teleport[0];
+                array[1] = _teleport[1];
+
+
+                var tile = Main.tile[left, top];
+                if (tile != null && tile.BlueWire)
+                {
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    WireAccelerator.Activate(left, top, 0);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
+                }
+
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+
+                array[2] = _teleport[0];
+                array[3] = _teleport[1];
+
+
+                var tile2 = Main.tile[left, top];
+                if (tile2 != null && tile2.GreenWire)
+                {
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    WireAccelerator.Activate(left, top, 1);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
+                }
+
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+
+                array[4] = _teleport[0];
+                array[5] = _teleport[1];
+
+                _teleport[0].X = -1f;
+                _teleport[0].Y = -1f;
+                _teleport[1].X = -1f;
+                _teleport[1].Y = -1f;
+
+                var tile4 = Main.tile[left, top];
+                if (tile4 != null && tile4.YellowWire)
+                {
+                    _numInPump = 0;
+                    _numOutPump = 0;
+                    WireAccelerator.Activate(left, top, 3);
+                    if (_numInPump > 0 && _numOutPump > 0)
+                    {
+                        XferWater();
+                    }
+                }
+
+                array[6] = _teleport[0];
+                array[7] = _teleport[1];
+
+
+                for (var num4 = 0; num4 < 8; num4 += 2)
+                {
+                    _teleport[0] = array[num4];
+                    _teleport[1] = array[num4 + 1];
+                    if (_teleport[0].X >= 0f && _teleport[1].X >= 0f)
                     {
                         Teleport();
                     }
@@ -582,7 +688,6 @@ namespace WireShark
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void PixelBoxPass()
         {
-
             while (WireAccelerator.boxCount > 0)
             {
                 var box = WireAccelerator._refreshedBoxes[--WireAccelerator.boxCount];
@@ -593,7 +698,7 @@ namespace WireShark
                 box.state = PixelBox.PixelBoxState.None;
             }
         }
-
+        /*
         // Token: 0x06000761 RID: 1889 RVA: 0x0035647C File Offset: 0x0035467C
         private static Action LogicGatePass = LogicGatePassVanilla;
         private static Action<int, int, int, int> TripWireWithLogic = TripWireWithLogicVanilla;
@@ -603,7 +708,7 @@ namespace WireShark
             LogicGatePass = isVanilla ? LogicGatePassVanilla : LogicGatePassAdvanced;
             TripWireWithLogic = isVanilla ? TripWireWithLogicVanilla : TripWireWithLogicAdvanced;
         }
-
+        */
 
         private static void LogicGatePassVanilla()
         {
@@ -626,9 +731,9 @@ namespace WireShark
                        //  CheckLogicGate((int)point.X, (int)point.Y);
                     } */
 
-                    //if (_GatesNext.Count > 0)
-                    //    Main.NewText($"gate counts to check = {_GatesNext.Count}");
-                    while (_GatesNext.Count > 0)
+            //if (_GatesNext.Count > 0)
+            //    Main.NewText($"gate counts to check = {_GatesNext.Count}");
+            while (_GatesNext.Count > 0)
                     {
                         Utils.Swap(ref _GatesCurrent, ref _GatesNext);
                         for (int i = 0; i < _GatesCurrent.Count; ++i)
@@ -637,7 +742,7 @@ namespace WireShark
                             if (_GatesDone[key.X, key.Y] != cur_gatesdone)
                             {
                                 _GatesDone[key.X, key.Y] = cur_gatesdone;
-                                TripWireWithLogicVanilla(key.X, key.Y, 1, 1);
+                                TripWireWithLogicVanillaSingle(key.X, key.Y);
                             }
                         }
                         _GatesCurrent.Clear();
@@ -655,51 +760,6 @@ namespace WireShark
                     }
                 }
 
-                Clear_Gates();
-                if (Wiring.blockPlayerTeleportationForOneIteration)
-                {
-                    Wiring.blockPlayerTeleportationForOneIteration = false;
-                }
-            }
-        }
-        private static void LogicGatePassAdvanced()
-        {
-            if (_GatesCurrent.Count == 0)
-            {
-                Clear_Gates();
-                while (_LampsToCheck.Count > 0)
-                {
-                    for (int i = 0; i < _LampsToCheck.Count; ++i)
-                    {
-                        _LampsToCheck.cachePtr[i].UpdateLogicGate();
-                    }
-                    _LampsToCheck.Clear();
-
-                    /*
-                    while (_LampsToCheck.Count > 0)
-                    {
-                        _LampsToCheck.Dequeue().UpdateLogicGate();
-                        
-                        // Point16 point = ;
-                        // CheckLogicGate((int)point.X, (int)point.Y);
-                    }*/
-
-                    while (_GatesNext.Count > 0)
-                    {
-                        Utils.Swap(ref _GatesCurrent, ref _GatesNext);
-                        for (int i = 0; i < _GatesCurrent.Count; ++i)
-                        {
-                            var key = _GatesCurrent.cachePtr[i];
-                            if (_GatesDone[key.X, key.Y] != cur_gatesdone)
-                            {
-                                _GatesDone[key.X, key.Y] = cur_gatesdone;
-                                TripWireWithLogicVanilla(key.X, key.Y, 1, 1);
-                            }
-                        }
-                        _GatesCurrent.Clear();
-                        PixelBoxPass();
-                    }
-                }
                 Clear_Gates();
                 if (Wiring.blockPlayerTeleportationForOneIteration)
                 {
@@ -1000,6 +1060,8 @@ namespace WireShark
                         newTile.hash = arr[i].hash;
                         newTile.tile = arr[i].tile;
                         newTile.lgate = lgate;
+                        newTile.add = newTile.tile.TileFrameX == 18 ? 1 : -1;
+                        newTile.frameX = (short *)Unsafe.AsPointer(ref newTile.tile.TileFrameX);
 
                         arr[i] = newTile;
                     }
@@ -1018,16 +1080,14 @@ namespace WireShark
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void HitWire(int wireType)
         {
+            _currentWireColor = wireType + 1;
             // _wireDirectionList.Clear(true);
-            WireAccelerator.ResetVisited();
             for (var i = 0; i < _wireList.Count; i++)
             {
                 var point = _wireList.cachePtr[i];
                 WireAccelerator.Activate(point.X, point.Y, wireType);
             }
-
-            _currentWireColor = wireType + 1;
-            Wiring.running = false;
+            _wireList.Clear();
         }
         
         // Token: 0x06000765 RID: 1893 RVA: 0x00359ABC File Offset: 0x00357CBC

@@ -24,6 +24,8 @@ namespace WireShark
 
             protected override void HitWireInternal()
             {
+                if (tile.HasActuator)
+                    WiringWrapper.ActuateForced(i, j);
                 _modTile.HitWire(i, j);
             }
         }
@@ -32,6 +34,8 @@ namespace WireShark
         {
             protected override void HitWireInternal()
             {
+                if (tile.HasActuator)
+                    WiringWrapper.ActuateForced(i, j);
             }
         }
 
@@ -94,11 +98,7 @@ namespace WireShark
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public void HitWire()
         {
-            if (tile.HasActuator)
-                WiringWrapper.ActuateForced(i, j);
-            //if (!TileLoader.PreHitWire(i, j, type)) return;
             HitWireInternal();
-            //TileLoader.HitWire(i, j, type);
         }
     }
 }

@@ -11,34 +11,40 @@ public class Tile419Error : Tile419
         WiringWrapper._LampsToCheck.AddLast(lgate);
     }
 }
-public class Tile419Normal : Tile419
+public unsafe class Tile419Normal : Tile419
 {
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     protected override void HitWireInternal()
     {
-        var frame = (short)(18 - tile.TileFrameX);
+        //lgate.lampon += (add = -add);
+        //WiringWrapper._LampsToCheck.AddLast(lgate);
+        
+        var frame = (short)(18 - *frameX);
         lgate.lampon += frame == 18 ? 1 : -1;
         WiringWrapper._LampsToCheck.AddLast(lgate);
-        tile.TileFrameX = frame;
+        *frameX = frame;
     }
 }
-public class Tile419NormalOnError : Tile419
+public unsafe class Tile419NormalOnError : Tile419
 {
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     protected override void HitWireInternal()
     {
-        var frame = (short) (18 - tile.TileFrameX);
+        //lgate.lampon += (add = -add);
+        
+        var frame = (short) (18 - *frameX);
         lgate.lampon += frame == 18 ? 1 : -1;
-        tile.TileFrameX = frame;
+        *frameX = frame;
     }
 }
-public class Tile419NormalUnconnected : Tile419
+public unsafe class Tile419NormalUnconnected : Tile419
 {
     [MethodImpl(MethodImplOptions.AggressiveOptimization)]
     protected override void HitWireInternal()
     {
-        var frame = (short)(18 - tile.TileFrameX);
-        tile.TileFrameX = frame;
+        /*
+        var frame = (short)(18 - *frameX);
+        *frameX = frame;*/
     }
 }
 public class Tile419ErrorUnconnected : Tile419
@@ -48,9 +54,11 @@ public class Tile419ErrorUnconnected : Tile419
     }
 }
 
-public class Tile419 : TileInfo
+public unsafe class Tile419 : TileInfo
 {
     internal LogicGate lgate;
+    internal short* frameX;
+    internal int add;
     protected override void HitWireInternal()
     {
         throw new NotImplementedException();

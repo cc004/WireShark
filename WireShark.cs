@@ -11,6 +11,7 @@ namespace WireShark {
             WireAccelerator.Preprocess();
             WiringWrapper.Initialize_GatesDone();
             WiringWrapper.Initialize_LogicLamps();
+            WireAccelerator.Postprocess();
         }
         public override void Load()
         {

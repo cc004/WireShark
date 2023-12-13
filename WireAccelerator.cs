@@ -41,6 +41,7 @@ namespace WireShark {
         private static readonly int[] dy = { 1, -1, 0, 0 };
         public static TileInfo[][] _connectionInfos;
         private static int[,,] _inputConnectedCompoents;
+        private static ConnectionQ[,,] _inputConnectedCompoentsQ;
 
         private static byte GetWireID(int X, int Y) {
             var tile = Main.tile[X, Y];
@@ -53,13 +54,15 @@ namespace WireShark {
             return mask;
         }
         
-        private static int* visited = (int *) IntPtr.Zero;
-        private static int now_number;
+        private static ConnectionQ now_number;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ResetVisited()
+        static WireAccelerator()
         {
-            ++now_number;
+            now_number = new ConnectionQ
+            {
+                arr = Array.Empty<TileInfo>(),
+                skipIndex = 0
+            };
         }
 
         // internal static Point16 triggeredBy;
@@ -67,19 +70,13 @@ namespace WireShark {
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         public static void Activate(int x, int y, int wire)
         {
-            // if (((_wireCache[x, y] >> wire) & 1) == 0) return;
-            var id = _inputConnectedCompoents[x, y, wire];
-            if (id == -1 || visited[id] == now_number) return;
-            var info = _connectionInfos[id];
-            // triggeredBy = new Point16(x, y);
-            for (int k = 0; k < info.Length; ++k)
-            {
-                var tile = info[k];
-                if (tile.i != x || tile.j != y)
-                    tile.HitWire();
-            }
+            var info = _inputConnectedCompoentsQ[x, y, wire];
 
-            visited[id] = now_number;
+            var k = 0;
+            for (; k < info.skipIndex; ++k)
+                info.arr[k].HitWire();
+            for (++k; k < info.arr.Length; ++k)
+                info.arr[k].HitWire();
         }
 
         private static ConcurrentQueue<Ref<int[,,,]>> disposing = new();
@@ -120,8 +117,10 @@ namespace WireShark {
         private static TileInfo[,] _tileCache;
         internal static bool noWireOrder = true;
 
-        public static void Preprocess() {
+        public static void Preprocess()
+        {
             _inputConnectedCompoents = new int[Main.maxTilesX, Main.maxTilesY, 4];
+            _inputConnectedCompoentsQ = new ConnectionQ[Main.maxTilesX, Main.maxTilesY, 4];
             _boxes = new ();
             _pixelBoxMap = new();
             _visIndexCache = new int[Main.maxTilesX, Main.maxTilesY, 4];
@@ -209,10 +208,6 @@ namespace WireShark {
             _tileCache = null;
             _pixelBoxMap = null;
 
-            if ((IntPtr) visited != IntPtr.Zero) Marshal.FreeHGlobal((IntPtr) visited);
-            visited = (int *) Marshal.AllocHGlobal(sizeof(int) * count);
-            now_number = 1;
-
             foreach (var r in disposing)
                 r.Value = null;
             disposing.Clear();
@@ -220,7 +215,12 @@ namespace WireShark {
             boxCount = 0;
             _boxes = null;
 
-            GC.Collect();
+        }
+
+        private class ConnectionQ
+        {
+            public TileInfo[] arr;
+            public int skipIndex;
         }
 
 
@@ -420,5 +420,41 @@ namespace WireShark {
             return outputs.ToArray();
         }
 
+        public static void Postprocess()
+        {
+            for (var i = 0; i < Main.maxTilesX; i++)
+            {
+                for (var j = 0; j < Main.maxTilesY; j++)
+                {
+                    for (var k = 0; k < 4; k++)
+                    {
+                        if (_inputConnectedCompoents[i, j, k] == -1)
+                            _inputConnectedCompoentsQ[i, j, k] = now_number;
+                        else
+                        {
+                            var q = new ConnectionQ
+                            {
+                                arr = _connectionInfos[_inputConnectedCompoents[i, j, k]]
+                            };
+
+                            var t = 0;
+                            for (; t < q.arr.Length; t++)
+                            {
+                                var info = q.arr[t];
+                                if (info.i == i && info.j == j) break;
+                            }
+                            q.skipIndex = t;
+
+                            _inputConnectedCompoentsQ[i, j, k] = q;
+                        }
+                    }
+                }
+
+                if (i % 100 == 0) Main.statusText = $"caching {i * 1f / Main.maxTilesX:P1}";
+            }
+
+            _connectionInfos = null;
+            _inputConnectedCompoents = null;
+        }
     }
 }

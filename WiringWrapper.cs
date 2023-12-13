@@ -52,7 +52,6 @@ namespace WireShark
             _inPumpY = new int[20];
             _outPumpX = new int[20];
             _outPumpY = new int[20];
-            _teleport = new Vector2[2];
             _mechX = new int[1000];
             _mechY = new int[1000];
             _mechTime = new int[1000];
@@ -72,7 +71,6 @@ namespace WireShark
             _inPumpY = null;
             _outPumpX = null;
             _outPumpY = null;
-            _teleport = null;
             _mechX = null;
             _mechY = null;
             _mechTime = null;
@@ -427,7 +425,9 @@ namespace WireShark
             var array = stackalloc Vector2[8];
             var num = 0;
 
-            fixed (Vector2* _teleport = WiringWrapper._teleport)
+            var teleport = stackalloc Vector2[2];
+            WiringWrapper._teleport = teleport;
+            // fixed (Vector2* _teleport = WiringWrapper._teleport)
             {
                 _teleport[0].X = -1f;
                 _teleport[0].Y = -1f;
@@ -584,7 +584,9 @@ namespace WireShark
             var array = stackalloc Vector2[8];
             var num = 0;
 
-            fixed (Vector2* _teleport = WiringWrapper._teleport)
+            var teleport = stackalloc Vector2[2];
+            WiringWrapper._teleport = teleport;
+
             {
                 _teleport[0].X = -1f;
                 _teleport[0].Y = -1f;
@@ -1210,7 +1212,7 @@ namespace WireShark
         }
 
         // Token: 0x04000C79 RID: 3193
-        public static Vector2[] _teleport;
+        public static Vector2* _teleport;
 
         // Token: 0x04000C7A RID: 3194
         public static int[] _inPumpX;

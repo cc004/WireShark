@@ -4,7 +4,7 @@ namespace WireShark.Tiles;
 
 public class Tile235 : TileInfo
 {
-    protected override void HitWireInternal()
+    protected override unsafe void HitWireInternal()
     {
         {
             var num72 = i - tile.TileFrameX / 18;

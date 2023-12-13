@@ -341,7 +341,7 @@ namespace WireShark {
             }
         }
 
-        public static List<PixelBox> _boxes;
+        private static List<PixelBox> _boxes;
         public static PixelBox[] _refreshedBoxes;
         public static int boxCount = 0;
         private static Dictionary<Point16, PixelBox> _pixelBoxMap;

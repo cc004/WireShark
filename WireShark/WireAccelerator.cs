@@ -720,6 +720,8 @@ namespace WireShark
             return false;
         }
 
+        private static readonly int CHUNK_STRING_LENGTH = int.MaxValue >> 4;
+
         private static void CodeEmit(StreamWriter sw)
         {
             sw.WriteLine("""
@@ -958,7 +960,11 @@ namespace WireShark
                 sw.WriteLine($"boxes[{pair.Value}] = {{0, {pair.Key.x}, {pair.Key.y}, nullptr}};");
             }*/
 
-
+            while (sb.Length > CHUNK_STRING_LENGTH)
+            {
+                sw.WriteLine(sb.ToString(0, CHUNK_STRING_LENGTH));
+                sb.Remove(0, CHUNK_STRING_LENGTH);
+            }
             sw.WriteLine(sb.ToString());
 
             // input component initialize

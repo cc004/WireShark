@@ -34,7 +34,8 @@ namespace WireShark
         {
             protected override void HitWireInternal()
             {
-                Wiring.ActuateForced(i, j);
+                if (tile.HasActuator)
+                    Wiring.ActuateForced(i, j);
             }
         }
 
@@ -98,14 +99,8 @@ namespace WireShark
                     result = new ActuatorApplianceTile(result);
                 }
             }
-            else if (Main.tile[x, y].HasActuator)
-            {
-                result = new ActuatorTile();
-            }
             else
-            {
-                throw new InvalidOperationException("TileInfo not found");
-            }
+                result = new ActuatorTile();
 
             result.tile = Main.tile[x, y];
             result.i = x;

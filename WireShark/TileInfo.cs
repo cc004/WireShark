@@ -25,7 +25,7 @@ namespace WireShark
             protected override void HitWireInternal()
             {
                 if (tile.HasActuator)
-                    WiringWrapper.ActuateForced(i, j);
+                    Wiring.ActuateForced(i, j);
                 _modTile.HitWire(i, j);
             }
         }
@@ -34,8 +34,21 @@ namespace WireShark
         {
             protected override void HitWireInternal()
             {
-                if (tile.HasActuator)
-                    WiringWrapper.ActuateForced(i, j);
+                Wiring.ActuateForced(i, j);
+            }
+        }
+
+        private class ActuatorApplianceTile : TileInfo
+        {
+            private readonly TileInfo other;
+            public ActuatorApplianceTile(TileInfo other)
+            {
+                this.other = other;
+            }
+            protected override void HitWireInternal()
+            {
+                Wiring.ActuateForced(i, j);
+                other.HitWireInternal();
             }
         }
 
@@ -80,10 +93,18 @@ namespace WireShark
             else if (tileinfo.TryGetValue(Main.tile[x, y].TileType, out var t))
             {
                 result = Activator.CreateInstance(t) as TileInfo;
+                if (Main.tile[x, y].HasActuator)
+                {
+                    result = new ActuatorApplianceTile(result);
+                }
+            }
+            else if (Main.tile[x, y].HasActuator)
+            {
+                result = new ActuatorTile();
             }
             else
             {
-                result = new ActuatorTile();
+                throw new InvalidOperationException("TileInfo not found");
             }
 
             result.tile = Main.tile[x, y];

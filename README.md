@@ -11,8 +11,8 @@ Simply load the WireShark mod into the game and enjoy the enhanced wire performa
 Currently, AOT mode is only supported on Windows, but porting it to other platforms is straightforward.  
 
 1. **Code Generation**  
-   * Load the WireShark mod into the game and enter the map once.
-   * The mod will generate an `impl.cpp` file in your mod folder.
+   * Load the WireShark mod into the game and enable AOT mode from mod config.
+   * Enter the map once. The mod will generate an `impl.cpp` file in your mod folder.
 
 2. **Compilation**  
    * Move `impl.cpp` to the `WireSharkLib` folder.

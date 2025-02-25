@@ -70,7 +70,7 @@ namespace WireShark
 
         // Token: 0x06000757 RID: 1879 RVA: 0x003552A8 File Offset: 0x003534A8
 
-        // Mech 应该就是可以激活的计时器
+        // Mech 应该就是可以激活的计时器 | It should be a timer that can be activated
         public static void UpdateMech()
         {
             SetCurrentUser(-1);
@@ -407,7 +407,7 @@ namespace WireShark
         private static void TripWire(int left, int top, int width, int height)
         {
             Wiring.running = true;
-            // 清除队列
+            // 清除队列 | clear queue
             _wireList.Clear();
             // _wireDirectionList.Clear(true);
 
@@ -559,14 +559,14 @@ namespace WireShark
             }
         }
 
-        // 优化方向：根据tile emit代码
+        // 优化方向：根据tile emit代码 | Optimization direction: based on tile emit code
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
         private static void TripWireSingle(int left, int top)
         {
 
             Wiring.running = true;
-            // 清除队列
+            // 清除队列 | clear queue
             _wireList.Clear();
             // _wireDirectionList.Clear(true);
 
@@ -893,7 +893,7 @@ namespace WireShark
         {
             LogicGate lgate;
             var tile = Main.tile[x, y];
-            var lamps = new List<Tile>(); // lamps before one error gate
+            var lamps = new List<Tile>();        // lamps before one error gate
             var lampTriggers = new List<Tile>(); // all lamps
             var countend = false;
             var onnum = 0;

@@ -944,8 +944,8 @@ namespace WireShark
                 .Select(pair => $"{pair.Key.add}"));
             sw.WriteLine($"static int adds[{Math.Max(addId.Count, 1)}] = {{{arr}}};");
 
-			// Display status message. Do not put this in the loop, will slow the thread.
-			Main.statusText = $"saving cache data...";
+            // Display status message. Do not put this in the loop, will slow the thread.
+            Main.statusText = $"saving cache data...";
 
             // === Now write all function bodies ===
             // Use StringReader to split by lines and avoid spliting by chunks. This is faster and causes no write errors.

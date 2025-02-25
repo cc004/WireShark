@@ -23,3 +23,15 @@ Currently, AOT mode is only supported on Windows, but porting it to other platfo
    * Move `libWireSharkLib.dll` to your *mod* folder.
    * **Disable** the WireShark mod.
    * Load the *WireSharkRuntime* mod into the game, and enter the same map where you ran the code generation step.
+
+### Configuration
+
+- **Parallel Thread Count** (default: `1x`):  
+  Set to `1` if there are bugs. A higher value requires more memory during preprocessing.  
+  *Only available when "No Order in Wires" is set to false.*
+
+- **No Order in Wires** (default: `on`):  
+  If the order on the same wire matters, enabling this option will speed up preprocessing, but the circuit might behave slightly differently than in vanilla logic.
+
+- **Enable AOT Mode** (default: `off`):  
+  When enabled, the game will perform additional caching and generate an `impl.cpp` file for AOT mode. This process is slow and not required for JIT mode.

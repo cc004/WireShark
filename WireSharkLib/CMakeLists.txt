@@ -1,14 +1,17 @@
 cmake_minimum_required(VERSION 3.27)
+project(WireSharkLib)
 
-# Set the C++ standard.
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Compiler-specific options.
-if(MSVC)
-    add_compile_options(/bigobj)
-elseif(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
+# Detect compiler.
+if (MSVC)
+    message(STATUS "Using MSVC")
+	add_compile_options(/bigobj)                  # Increases the number of sections.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT") # Static runtime.
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)      # Export all symbols in the DLL.
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Using MinGW/GCC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static")
 endif()
 
 # Include directories.
@@ -27,11 +30,28 @@ add_library(WireSharkLib SHARED
     interop.cpp
 )
 
+# Define the test executables libraries.
+add_executable(WireSharkLibTest
+    quick_queue.h
+    wiring_wrapper.h
+    wiring_wrapper.cpp
+    common.h
+    logic_gate.h
+    pixel_box.h
+    interop.h
+    impl.cpp
+    interop.cpp
+    test.cpp
+)
+
 # Rename the output DLL.
 if(MSVC)
     set_target_properties(WireSharkLib PROPERTIES OUTPUT_NAME "libWireSharkLib")
 endif()
 
-# Define the test executable and link it with WireSharkLib.
-add_executable(WireSharkLibTest test.cpp)
-target_link_libraries(WireSharkLibTest WireSharkLib)
+# Link the library correctly depending on the compiler.
+if (MSVC)
+    target_link_libraries(WireSharkLib)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_libraries(WireSharkLib -static-libgcc -static-libstdc++)
+endif()

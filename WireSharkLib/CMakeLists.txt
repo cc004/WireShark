@@ -28,7 +28,9 @@ add_library(WireSharkLib SHARED
 )
 
 # Rename the output DLL.
-set_target_properties(WireSharkLib PROPERTIES OUTPUT_NAME "libWireSharkLib")
+if(MSVC)
+    set_target_properties(WireSharkLib PROPERTIES OUTPUT_NAME "libWireSharkLib")
+endif()
 
 # Define the test executable and link it with WireSharkLib.
 add_executable(WireSharkLibTest test.cpp)

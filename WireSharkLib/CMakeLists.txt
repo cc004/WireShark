@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 # Detect compiler.
 if (MSVC)
     message(STATUS "Using MSVC")
-	add_compile_options(/bigobj)                  # Increases the number of sections.
+    add_compile_options(/bigobj)                  # Increases the number of sections.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MT") # Static runtime.
     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)      # Export all symbols in the DLL.
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

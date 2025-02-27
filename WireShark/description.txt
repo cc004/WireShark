@@ -1,1 +1,1 @@
-电路加速器 is a pretty cool mod, it does...this. Modify this file with a description of your mod.
+WireShark is a wire accelarator for Terraria, which can run in both JIT and AOT mode.

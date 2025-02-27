@@ -43,8 +43,8 @@ namespace WireShark
         };
 
         // D, U, R, L
-        private static readonly int[] dx = {0, 0, 1, -1};
-        private static readonly int[] dy = {1, -1, 0, 0};
+        private static readonly int[] dx = { 0, 0, 1, -1 };
+        private static readonly int[] dy = { 1, -1, 0, 0 };
         public static TileInfo[][] _connectionInfos;
         private static int[,,] _inputConnectedCompoents;
         private static ConnectionQ[,,] _inputConnectedCompoentsQ;
@@ -237,7 +237,7 @@ namespace WireShark
         private static bool IsAppliance(int i, int j)
         {
             var tile = Main.tile[i, j];
-            var type = (int) tile.TileType;
+            var type = (int)tile.TileType;
             if (ModContent.GetModTile(type) != null)
                 return true;
             if (tile.HasActuator) return true;
@@ -385,7 +385,7 @@ namespace WireShark
             {
                 var node = Q.Dequeue();
                 //if (node.X == 2129 && node.Y == 282) Debugger.Break();
-                // 到达当前点使用的是哪个方向
+                // 到达当前点使用的是哪个方向 | 
                 var dir = node.Dir;
                 var curTile = Main.tile[node.X, node.Y];
                 var index = _visIndexCache[node.X, node.Y, dir];
@@ -492,11 +492,15 @@ namespace WireShark
                 if (i % 100 == 0) Main.statusText = $"caching {i * 1f / Main.maxTilesX:P1}";
             }
 
-            using var sw = new StreamWriter(new FileStream(
+            // Checks to run AOT mode via ModConfig system.
+            if (WireConfig.Instance.EnableCodeEmit)
+            {
+                using var sw = new StreamWriter(new FileStream(
                 Path.Combine(ModLoader.ModPath, "impl.cpp"),
                 FileMode.Create, FileAccess.Write));
 
-            CodeEmit(sw);
+                CodeEmit(sw);
+            }
             // do codegen
             /*
             using var sw = new StreamWriter(new FileStream(
@@ -720,10 +724,9 @@ namespace WireShark
             return false;
         }
 
-        private static readonly int CHUNK_STRING_LENGTH = int.MaxValue >> 4;
-
         private static void CodeEmit(StreamWriter sw)
         {
+            // Write necessary includes.
             sw.WriteLine("""
                          #include "pixel_box.h"
                          #include "logic_gate.h"
@@ -731,181 +734,198 @@ namespace WireShark
                          #include "interop.h"
                          """);
 
-            var gatesId = new Dictionary<LogicGate, int>();
-            var gates2Id = new Dictionary<LogicGate, int>();
-            var boxId = new Dictionary<PixelBox, int>();
-            var funcId = new Dictionary<Task, int>();
-            var addId = new Dictionary<Tile419, int>();
-            var stateId = new Dictionary<WireState, int>();
-            ;
-            var sb = new StringBuilder();
-            
-            var funcs = new int[8400, 2400];
+            // Dictionaries to track unique IDs for various components.
+            var gatesId = new Dictionary<LogicGate, int>();  // Maps LogicGate to a unique ID.
+            var gates2Id = new Dictionary<LogicGate, int>(); // Maps specialized LogicGate (e.g., OneErrorGate) to unique ID.
+            var boxId = new Dictionary<PixelBox, int>();     // Maps PixelBox to a unique ID.
+            var funcId = new Dictionary<Task, int>();        // Maps Task (wire connections) to a unique ID.
+            var addId = new Dictionary<Tile419, int>();      // Maps Tile419 (tile types) to a unique ID.
+            var stateId = new Dictionary<WireState, int>();  // Maps WireState to a unique ID.
 
+            var sb = new StringBuilder();                    // StringBuilder for accumulating function bodies.
+            var funcs = new int[8400, 2400];                 // 2D array to store function IDs for tile coordinates.
+
+            // Iterate through all tiles in the map
             for (int i = 0; i < Main.maxTilesX; ++i)
-            for (int j = 0; j < Main.maxTilesY; ++j)
             {
-                if (!IsTrigger(i, j)) continue;
-                var conns = new List<TileInfo[]>();
-
-                var id = _inputConnectedCompoents[i, j, 0];
-                if (id != -1) conns.Add(_connectionInfos[id]);
-                id = _inputConnectedCompoents[i, j, 1];
-                if (id != -1) conns.Add(_connectionInfos[id]);
-                id = _inputConnectedCompoents[i, j, 2];
-                if (id != -1) conns.Add(_connectionInfos[id]);
-                id = _inputConnectedCompoents[i, j, 3];
-                if (id != -1) conns.Add(_connectionInfos[id]);
-
-                var conn = conns.SelectMany(x => x).Where(t => t.i != i || t.j != j).ToArray();
-                if (conn.Length == 0) continue;
-
-                var wire = new Task
+                for (int j = 0; j < Main.maxTilesY; ++j)
                 {
-                    i = i, j = j,
-                    conn = conn,
-                };
+                    // Skip if the current tile is not a trigger.
+                    if (!IsTrigger(i, j)) continue;
 
-                try
-                {
-                    if (funcId.ContainsKey(wire))
+                    var conns = new List<TileInfo[]>(); // Store connections for each tile.
+
+                    // Gather connection info for the current tile.
+                    for (int k = 0; k < 4; ++k)
                     {
-                        continue;
+                        var id = _inputConnectedCompoents[i, j, k];
+                        if (id != -1) conns.Add(_connectionInfos[id]);
                     }
-                    funcId[wire] = funcId.Count;
-                }
-                finally
-                {
-                    funcs[i, j] = funcId[wire] + 1;
-                }
 
-                sb.AppendLine($"static void func_{funcId[wire]}() {{");
+                    // Flatten the connections and filter out connections to the current tile.
+                    var conn = conns.SelectMany(x => x).Where(t => t.i != i || t.j != j).ToArray();
+                    if (conn.Length == 0) continue; // Skip if no connections exist.
 
-                foreach (var tile in wire.conn)
-                {
-                    switch (tile)
+                    var wire = new Task
                     {
-                        case Tile419 t:
+                        i = i,
+                        j = j,
+                        conn = conn, // Store connections for the wire task.
+                    };
+
+                    try
+                    {
+                        // Skip if the wire has already been processed.
+                        if (funcId.ContainsKey(wire))
                         {
-                            if (t.lgate != null)
-                            {
-                                if (t.lgate is OneErrorGate)
-                                    gates2Id.TryAdd(t.lgate, gates2Id.Count);
-                                else
-                                    gatesId.TryAdd(t.lgate, gatesId.Count);
-                            }
+                            continue;
+                        }
+                        // Assign a unique function ID to the wire.
+                        funcId[wire] = funcId.Count;
+                    }
+                    finally
+                    {
+                        // Store the function ID in the funcs array.
+                        funcs[i, j] = funcId[wire] + 1;
+                    }
 
-                            addId.TryAdd(t, addId.Count);
+                    // Append the function definition to the StringBuilder.
+                    sb.AppendLine($"static void func_{funcId[wire]}() {{");
 
-                            var gate_checker = t.lgate switch
+                    // Iterate over each connection for the current wire task.
+                    foreach (var tile in wire.conn)
+                    {
+                        switch (tile)
+                        {
+                            case Tile419 t:
                             {
-                                AllOnGate => $"all_on_gate_checker<{t.lgate.lamptotal}>",
-                                AllOffGate => "all_off_gate_checker",
-                                AnyOffGate => $"any_off_gate_checker<{t.lgate.lamptotal}>",
-                                AnyOnGate => "any_on_gate_checker",
-                                OneOnGate => "one_on_gate_checker",
-                                NotOneOnGate => "not_one_on_gate_checker",
-                                OneErrorGate => "one_error_gate_checker",
-                                ErrorGate => $"error_gate_checker<{t.lgate.lamptotal}>",
-                                _ => string.Empty
-                            };
-                            switch (t)
-                            {
-                                case Tile419Normal:
+                                // Handle logic gates (e.g., AND, OR, NOT).
+                                if (t.lgate != null)
                                 {
-                                    sb.AppendLine($"""
-                                                       gates[{gatesId[t.lgate]}].lamp_on += adds[{addId[t]}] = -adds[{addId[t]}];
-                                                       lamps_to_check.push({gate_checker}, &gates[{gatesId[t.lgate]}]);
-                                                   """);
-                                    break;
-                                }
-                                case Tile419NormalOnError:
-                                {
-                                    sb.AppendLine($"""
-                                                       gates[{gatesId[t.lgate]}].lamp_on += adds[{addId[t]}] = -adds[{addId[t]}];
-                                                   """);
-                                    break;
-                                }
-                                case Tile419Error:
-                                {
-                                    if (t.lgate is OneErrorGate err)
-                                    {
-                                        int stateNum = 0;
-                                        if (err.state1 != OneErrorGate.alwaysFalse) ++stateNum;
-                                        if (err.state2 != OneErrorGate.alwaysFalse) ++stateNum;
-                                        if (err.state3 != OneErrorGate.alwaysFalse) ++stateNum;
-                                        if (err.state4 != OneErrorGate.alwaysFalse) ++stateNum;
-                                        sb.AppendLine($"""
-                                                           lamps_to_check.push({gate_checker}<{stateNum}>, &one_error_gates[{gates2Id[t.lgate]}]);
-                                                       """);
-                                    }
+                                    if (t.lgate is OneErrorGate)
+                                        gates2Id.TryAdd(t.lgate, gates2Id.Count);
                                     else
+                                        gatesId.TryAdd(t.lgate, gatesId.Count);
+                                }
+
+                                // Track the tile in addId.
+                                addId.TryAdd(t, addId.Count);
+
+                                // Determine the gate checker based on the gate type.
+                                var gate_checker = t.lgate switch
+                                {
+                                    AllOnGate => $"all_on_gate_checker<{t.lgate.lamptotal}>",
+                                    AllOffGate => "all_off_gate_checker",
+                                    AnyOffGate => $"any_off_gate_checker<{t.lgate.lamptotal}>",
+                                    AnyOnGate => "any_on_gate_checker",
+                                    OneOnGate => "one_on_gate_checker",
+                                    NotOneOnGate => "not_one_on_gate_checker",
+                                    OneErrorGate => "one_error_gate_checker",
+                                    ErrorGate => $"error_gate_checker<{t.lgate.lamptotal}>",
+                                    _ => string.Empty
+                                };
+
+                                // Handle different tile types and generate corresponding logic.
+                                switch (t)
+                                {
+                                    case Tile419Normal:
                                     {
                                         sb.AppendLine($"""
+                                                           gates[{gatesId[t.lgate]}].lamp_on += adds[{addId[t]}] = -adds[{addId[t]}];
                                                            lamps_to_check.push({gate_checker}, &gates[{gatesId[t.lgate]}]);
                                                        """);
+                                        break;
                                     }
+                                    case Tile419NormalOnError:
+                                    {
+                                        sb.AppendLine($"""
+                                                           gates[{gatesId[t.lgate]}].lamp_on += adds[{addId[t]}] = -adds[{addId[t]}];
+                                                       """);
+                                        break;
+                                    }
+                                    case Tile419Error:
+                                    {
+                                        if (t.lgate is OneErrorGate err)
+                                        {
+                                            // Determine the number of active states for OneErrorGate.
+                                            int stateNum = 0;
+                                            if (err.state1 != OneErrorGate.alwaysFalse) ++stateNum;
+                                            if (err.state2 != OneErrorGate.alwaysFalse) ++stateNum;
+                                            if (err.state3 != OneErrorGate.alwaysFalse) ++stateNum;
+                                            if (err.state4 != OneErrorGate.alwaysFalse) ++stateNum;
+                                            sb.AppendLine($"""
+                                                               lamps_to_check.push({gate_checker}<{stateNum}>, &one_error_gates[{gates2Id[t.lgate]}]);
+                                                           """);
+                                        }
+                                        else
+                                        {
+                                            sb.AppendLine($"""
+                                                               lamps_to_check.push({gate_checker}, &gates[{gatesId[t.lgate]}]);
+                                                           """);
+                                        }
+                                        break;
+                                    }
+                                    case Tile419NormalOnOneError:
+                                    {
+                                        sb.AppendLine($"""
+                                                           one_error_gates[{gates2Id[t.lgate]}].lamp_on = 1 - one_error_gates[{gates2Id[t.lgate]}].lamp_on;
+                                                       """);
+                                        break;
+                                    }
+                                }
 
-                                    break;
-                                }
-                                case Tile419NormalOnOneError:
-                                {
-                                    sb.AppendLine($"""
-                                                       one_error_gates[{gates2Id[t.lgate]}].lamp_on = 1 - one_error_gates[{gates2Id[t.lgate]}].lamp_on;
-                                                   """);
-                                    break;
-                                }
+                                break;
                             }
-
-                            break;
-                        }
-                        case PixelBoxBase t:
-                        {
-                            boxId.TryAdd(t.box, boxId.Count);
-                            var state = t is PixelBoxVertical ? 2 : 1;
-                            sb.AppendLine($"""
-                                               boxes[{boxId[t.box]}].state |= {state};
-                                               box_to_update.push(&boxes[{boxId[t.box]}]);
-                                           """);
-                            break;
-                        }
-                        case WireState t:
-                        {
-                            stateId.TryAdd(t, stateId.Count);
-                            sb.AppendLine($"""
-                                               states[{stateId[t]}] ^= true;
-                                           """);
-                            break;
-                        }
-                        default:
-                        {
-                            sb.AppendLine($"""
-                                               HitTile({tile.i}, {tile.j});
-                                           """);
-                            break;
+                            case PixelBoxBase t:
+                            {
+                                // Handle PixelBox objects (store in boxId).
+                                boxId.TryAdd(t.box, boxId.Count);
+                                var state = t is PixelBoxVertical ? 2 : 1;
+                                sb.AppendLine($"""
+                                                   boxes[{boxId[t.box]}].state |= {state};
+                                                   box_to_update.push(&boxes[{boxId[t.box]}]);
+                                               """);
+                                break;
+                            }
+                            case WireState t:
+                            {
+                                // Handle WireState objects (toggle state).
+                                stateId.TryAdd(t, stateId.Count);
+                                sb.AppendLine($"""
+                                                   states[{stateId[t]}] ^= true;
+                                               """);
+                                break;
+                            }
+                            default:
+                            {
+                                // Handle default tile case.
+                                sb.AppendLine($"""
+                                                   HitTile({tile.i}, {tile.j});
+                                               """);
+                                break;
+                            }
                         }
                     }
+
+                    sb.AppendLine("}"); // Close function body.
                 }
 
-                sb.AppendLine("}");
-
-                while (sb.Length > CHUNK_STRING_LENGTH)
-                {
-                    sw.WriteLine(sb.ToString(0, CHUNK_STRING_LENGTH));
-                    sb.Remove(0, CHUNK_STRING_LENGTH);
-                }
+                // Display status message.
+                if (i % 100 == 0) Main.statusText = $"generating cache data {i * 1f / Main.maxTilesX:P1}";
             }
 
+            // === Write all static arrays first ===
+            // Fix: Use ternary operator's for handeling empty count cases.
             var arr = string.Join(", ", gatesId.OrderBy(p => p.Value)
                 .Select(pair => $"{{{*pair.Key.lampon}, 0, {(pair.Key.mapTile.TileFrameX == 18 ? "true" : "false")}," +
                                 $"{{{pair.Key.x}, {pair.Key.y}, &gates[{pair.Value}].last_active}}}}"));
-            sw.WriteLine($"static logic_gate gates[{gatesId.Count}] = {{{arr}}};");
+            sw.WriteLine($"static logic_gate gates[{Math.Max(gatesId.Count, 1)}] = {{{arr}}};");
 
             arr = string.Join(", ", stateId.OrderBy(p => p.Value)
                 .Select(pair => pair.Key.state ? "true" : "false"));
-            sw.WriteLine($"static bool states[{stateId.Count}] = {{{arr}}};");
+            sw.WriteLine($"static bool states[{Math.Max(stateId.Count, 1)}] = {{{arr}}};");
 
-            stateId[OneErrorGate.alwaysFalse] = -1;
+            stateId[OneErrorGate.alwaysFalse] = -1; // Handle alwaysFalse state.
             arr = string.Join(", ", gates2Id.OrderBy(p => p.Value)
                 .Select(pair =>
                 {
@@ -914,82 +934,35 @@ namespace WireShark
                            $"&states[{stateId[l.state3]}], &states[{stateId[l.state4]}]}}, {(l.originalState ? "true" : "false")}, " +
                            $"{{{pair.Key.x}, {pair.Key.y}, &one_error_gates[{pair.Value}].last_active}}}}";
                 }));
-            sw.WriteLine($"static one_error_gate one_error_gates[{gates2Id.Count}] = {{{arr}}};");
+            sw.WriteLine($"static one_error_gate one_error_gates[{Math.Max(gates2Id.Count, 1)}] = {{{arr}}};");
 
             arr = string.Join(", ", boxId.OrderBy(p => p.Value)
                 .Select(pair => $"{{0, {pair.Key.x}, {pair.Key.y}, nullptr}}"));
-            sw.WriteLine($"static pixel_box boxes[{boxId.Count}] = {{{arr}}};");
-
+            sw.WriteLine($"static pixel_box boxes[{Math.Max(boxId.Count, 1)}] = {{{arr}}};");
 
             arr = string.Join(", ", addId.OrderBy(p => p.Value)
                 .Select(pair => $"{pair.Key.add}"));
-            sw.WriteLine($"static int adds[{addId.Count}] = {{{arr}}};");
+            sw.WriteLine($"static int adds[{Math.Max(addId.Count, 1)}] = {{{arr}}};");
 
-            /*
-            // logic_gate initialize
+            // Display status message. Do not put this in the loop, will slow the thread.
+            Main.statusText = $"saving cache data...";
 
-            foreach (var pair in gatesId.OrderBy(p => p.Value))
+            // === Now write all function bodies ===
+            // Use StringReader to split by lines and avoid spliting by chunks. This is faster and causes no write errors.
+            using (StringReader reader = new StringReader(sb.ToString()))
             {
-                sw.WriteLine($"gates[{pair.Value}] = {{{*pair.Key.lampon}, 0, {(pair.Key.mapTile.TileFrameX == 18 ? "true" : "false")}," +
-                             $"{{{pair.Key.x}, {pair.Key.y}, &gates[{pair.Value}].last_active}}}};");
+                string? line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    sw.WriteLine(line);
+                }
             }
 
-            // state initialize
-
-            foreach (var state in stateId.OrderBy(p => p.Value))
-            {
-                sw.WriteLine($"states[{state.Value}] = {(state.Key.state ? "true" : "false")};");
-            }
-
-            // one_error_gate initialize
-
-            foreach (var pair in gates2Id.OrderBy(p => p.Value))
-            {
-                var l = pair.Key as OneErrorGate;
-                sw.WriteLine($"one_error_gates[{pair.Value}] = {{" +
-                             $"{{&states[{stateId[l.state1]}], &states[{stateId[l.state2]}], " +
-                             $"&states[{stateId[l.state3]}], &states[{stateId[l.state4]}]}}, {(l.originalState ? "true" : "false")}, " +
-                             $"{{{pair.Key.x}, {pair.Key.y}, &gates[{pair.Value}].last_active}}}};");
-            }
-
-            // add initializer
-
-            foreach (var pair in addId.OrderBy(p => p.Value))
-            {
-                sw.WriteLine($"adds[{pair.Value}] = {pair.Key.add};");
-            }
-
-            // pixel box initalizer
-
-            foreach (var pair in boxId.OrderBy(p => p.Value))
-            {
-                sw.WriteLine($"boxes[{pair.Value}] = {{0, {pair.Key.x}, {pair.Key.y}, nullptr}};");
-            }*/
-
-            sw.WriteLine(sb.ToString());
-
-            // input component initialize
-
+            // Write connection input initialization.
             arr = string.Join(",", funcs.OfType<int>().Select(x => x == 0 ? "0" : $"func_{x - 1}"));
             sw.WriteLine($"Connection inputConnectedCompoents[maxTilesX][maxTilesY] = {{{arr}}};");
 
-            /*
-            for (var i = 0; i < Main.maxTilesX; i++)
-            {
-                sw.WriteLine();
-                for (var j = 0; j < Main.maxTilesY; j++)
-                {
-                    for (var k = 0; k < 4; ++k)
-                    {
-                        var id = _inputConnectedCompoents[i, j, k];
-                        if (id == -1) continue;
-                        sw.WriteLine($"    inputConnectedCompoents[{i}][{j}][{k}] = func_{funcId[_connectionInfos[id]]};");
-                    }
-                }
-            }
-            sw.WriteLine("};");*/
-
-
+            // Write GetPixelBoxPointer and GetPixelBoxCount methods.
             sw.WriteLine($$"""
                            pixel_box* GetPixelBoxPointer()
                            {
@@ -1000,7 +973,6 @@ namespace WireShark
                                return {{boxId.Count}};
                            }
                            """);
-
         }
     }
 }
